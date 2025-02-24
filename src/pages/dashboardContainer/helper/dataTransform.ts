@@ -1,21 +1,8 @@
-import {
-  PlumeRegion,
-  Plume,
-  SubDailyPlume,
-  STACItem,
-  PlumeMeta,
-  PlumeRegionMeta,
-} from '../../../dataModel';
-
-interface PlumeRegionMap {
-  [key: string]: PlumeRegion;
-}
+import { Plume, STACItem, PlumeMeta } from '../../../dataModel';
 
 interface PlumeMap {
   [key: string]: Plume;
 }
-
-type DataTree = PlumeRegionMap;
 
 export function dataTransformationPlume(
   data: STACItem[],
@@ -63,17 +50,14 @@ export function dataTransformationPlume(
   return plumeMap;
 }
 
-export function dataTransformationPlumeRegion(
-  plumeMap: PlumeMap
-): PlumeRegionMap {
-  const dataTree: DataTree = {};
+export function dataTransformationPlumeRegion(plumeMap: PlumeMap) {
+  const dataTree = {};
   // create a data tree
   Object.keys(plumeMap).forEach((plumeId) => {
     // datetime correction in the plume. Note: plumes are in sorted order (by datetime)
     const noOfSubDailyPlumes: number = plumeMap[plumeId].subDailyPlumes.length;
-    const firstSubDailyPlume: SubDailyPlume =
-      plumeMap[plumeId].subDailyPlumes[0];
-    const lastSubDailyPlume: SubDailyPlume =
+    const firstSubDailyPlume: STACItem = plumeMap[plumeId].subDailyPlumes[0];
+    const lastSubDailyPlume: STACItem =
       plumeMap[plumeId].subDailyPlumes[noOfSubDailyPlumes - 1];
     plumeMap[plumeId].startDate = firstSubDailyPlume.properties.datetime;
     plumeMap[plumeId].endDate = lastSubDailyPlume.properties.datetime;
@@ -83,17 +67,17 @@ export function dataTransformationPlumeRegion(
     const region = plume.region;
 
     if (!(region in dataTree)) {
-      const plumeRegion: PlumeRegion = {
+      const plumeRegion = {
         id: region,
         location: plume.location,
         startDate: plume.startDate,
         endDate: plume.endDate,
         plumes: [],
       };
-      dataTree[region] = plumeRegion;
+      // dataTree[region] = plumeRegion;
     }
-    dataTree[region].plumes.push(plume);
-    dataTree[region].endDate = plume.endDate; // to get realistic endDate for the PlumeRegion.
+    // dataTree[region].plumes.push(plume);
+    // dataTree[region].endDate = plume.endDate; // to get realistic endDate for the PlumeRegion.
   });
 
   return dataTree;
@@ -103,9 +87,9 @@ interface PlumeMetaMap {
   [key: string]: PlumeMeta;
 }
 
-interface PlumeRegionMetaMap {
-  [key: string]: PlumeRegionMeta;
-}
+// interface PlumeRegionMetaMap {
+//   [key: string];
+// }
 
 export function dataTransformationPlumeMeta(
   plumeMetas: PlumeMeta[]
@@ -120,24 +104,22 @@ export function dataTransformationPlumeMeta(
   return plumeMetaMap;
 }
 
-export function dataTransformationPlumeRegionMeta(
-  plumeMetaMap: PlumeMetaMap
-): PlumeRegionMetaMap {
-  const plumeRegionMetaMap: PlumeRegionMetaMap = {};
+export function dataTransformationPlumeRegionMeta(plumeMetaMap: PlumeMetaMap) {
+  const plumeRegionMetaMap = {};
 
   Object.keys(plumeMetaMap).forEach((plumeId) => {
     let plumeMeta: PlumeMeta = plumeMetaMap[plumeId];
     if (!(plumeMeta.plumeSourceId in plumeRegionMetaMap)) {
-      const plumeRegionMeta: PlumeRegionMeta = {
+      const plumeRegionMeta = {
         id: plumeMeta.plumeSourceId, // Format: <region>. e.g. BV1
         plumeSourceName: plumeMeta.plumeSourceName,
         country: plumeMeta.country,
         administrativeDivision: plumeMeta.administrativeDivision,
         plumes: [],
       };
-      plumeRegionMetaMap[plumeMeta.plumeSourceId] = plumeRegionMeta;
+      // plumeRegionMetaMap[plumeMeta.plumeSourceId] = plumeRegionMeta;
     }
-    plumeRegionMetaMap[plumeMeta.plumeSourceId].plumes.push(plumeMeta);
+    // plumeRegionMetaMap[plumeMeta.plumeSourceId].plumes.push(plumeMeta);
   });
   return plumeRegionMetaMap;
 }

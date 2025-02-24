@@ -3,9 +3,9 @@
 }
 
 #colorbar {
-  position: absolute; 
-  bottom: 3%; 
-  right: 5px; 
+  position: absolute;
+  bottom: 3%;
+  right: 5px;
   height: var(--colorbar-height);
   width: 30rem;
   z-index: 10000;

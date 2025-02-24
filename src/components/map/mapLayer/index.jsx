@@ -21,7 +21,7 @@ export const VisualizationLayer = ({
 }) => {
   const { map } = useMapbox();
   const vizItemId = vizItem.id;
-
+  console.log({ vizItem });
   useEffect(() => {
     if (!map || !vizItem) return;
     const feature = vizItem;

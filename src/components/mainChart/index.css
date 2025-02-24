@@ -1,82 +1,82 @@
 #chart-container {
-    position: absolute;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    background-color: white;
-    padding: 10px;
-    margin-top: 20px;
+  position: absolute;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  padding: 10px;
+  margin-top: 20px;
 }
 
 .chart-tools-container {
-    position: absolute;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 10px;
-    z-index: 1;
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  z-index: 1;
 }
 
 #chart-tools-left {
-    align-items: center;
-    gap: 10px;
-    margin: 10px;
+  align-items: center;
+  gap: 10px;
+  margin: 10px;
 }
 
 #chart-tools-right {
-    align-items: center;
-    gap: 10px;
-    margin: 10px;
+  align-items: center;
+  gap: 10px;
+  margin: 10px;
 }
 
 #chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 10px;
-    background-color: #d6dce3;
-    border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  background-color: #d6dce3;
+  border-bottom: 1px solid #ddd;
 }
 
 #chart-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    flex-grow: 1;
-    padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex-grow: 1;
+  padding: 10px;
 }
 #chart {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 #chart-instructions {
-    position: absolute;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    font-size: 14px;
-    display: block;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  display: block;
 }
 
 #chart-controls {
-    padding: 6px;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
+  padding: 6px;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
 }
 
 #chart-controls > svg {
-    margin: 0 5px;
-    cursor: pointer;
+  margin: 0 5px;
+  cursor: pointer;
 }
 
 #data-access-link {
-    margin-right: 7px;
-    text-decoration: none;
+  margin-right: 7px;
+  text-decoration: none;
 }

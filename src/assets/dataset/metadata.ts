@@ -1,6 +1,6 @@
 import { PlumeMeta } from '../../dataModel';
 
-export const PlumeMetas: PlumeMeta[] = [
+export const PlumeMetas = [
   {
     id: 'Mexico_Durango_BV1_BV1-1',
     plumeSourceId: 'BV1',

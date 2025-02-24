@@ -1,6 +1,6 @@
-import { Chart } from "chart.js";
-import zoomPlugin from "chartjs-plugin-zoom";
-import annotationPlugin from "chartjs-plugin-annotation";
+import { Chart } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import 'chartjs-adapter-luxon';
 import { plugin } from './customPlugin';
 

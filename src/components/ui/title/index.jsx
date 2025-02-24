@@ -15,14 +15,16 @@ export const Title = ({ title, description }) => {
       >
         {title}
       </Typography>
-      {description && <Typography
-        variant='body2'
-        component='div'
-        className='title-note'
-        sx={{ margin: '0 0.9rem', color: 'text.secondary' }}
-      >
-        {description}
-      </Typography>}
+      {description && (
+        <Typography
+          variant='body2'
+          component='div'
+          className='title-note'
+          sx={{ margin: '0 0.9rem', color: 'text.secondary' }}
+        >
+          {description}
+        </Typography>
+      )}
     </>
   );
 };

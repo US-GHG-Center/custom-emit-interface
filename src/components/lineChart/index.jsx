@@ -1,7 +1,16 @@
 import { useEffect } from 'react';
 import { useChart } from '../../context/chartContext';
 
-export const LineChart = ({ data, labels, legend, labelX, labelY, color="#ff6384", index=0, separateY=false }) => {
+export const LineChart = ({
+  data,
+  labels,
+  legend,
+  labelX,
+  labelY,
+  color = '#ff6384',
+  index = 0,
+  separateY = false,
+}) => {
   // data should be an array of vector points
   // labels should be an array of the vector labels
   const { chart } = useChart();
@@ -37,7 +46,7 @@ export const LineChart = ({ data, labels, legend, labelX, labelY, color="#ff6384
     chart.data.labels = labels;
 
     // update the axis labels
-    chart.options.scales.y.display = separateY?false:true;
+    chart.options.scales.y.display = separateY ? false : true;
     chart.options.scales.x.display = false;
 
     // Ensure scales object exists
@@ -62,11 +71,11 @@ export const LineChart = ({ data, labels, legend, labelX, labelY, color="#ff6384
         text: labelX,
         display: !!labelX,
         // color: color
-      }
+      },
     };
 
     chart.options.scales[`y-${index}`] = {
-      display: separateY?true:false,
+      display: separateY ? true : false,
       grid: {
         display: false,
         drawOnChartArea: false,
@@ -79,12 +88,11 @@ export const LineChart = ({ data, labels, legend, labelX, labelY, color="#ff6384
         text: labelY,
         display: !!labelY,
         // color: color
-      }
+      },
     };
 
     // update the chart
     chart.update();
-
   }, [chart, data, labels, legend, labelX, labelY, color, index]);
 
   return null;

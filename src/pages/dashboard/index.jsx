@@ -36,7 +36,6 @@ const HorizontalLayout = styled.div`
 `;
 export function Dashboard({
   data,
-  dataTree,
   metaDataTree,
   collectionMeta,
   vizItemMetaData,
@@ -53,42 +52,37 @@ export function Dashboard({
   const prevSelectedRegionId = useRef(''); // to be able to restore to previously selected region.
   const [selectedVizItems, setSelectedVizItems] = useState([]); // all visualization items for the selected region (marker)
   const [hoveredVizLayerId, setHoveredVizLayerId] = useState(''); // vizItem_id of the visualization item which was hovered over
+  const [colorbarAttributes, setColorbaAttributes] = useState({});
   const [filteredVizItems, setFilteredVizItems] = useState([]); // visualization items for the selected region with the filter applied
 
   const [vizItemIds, setVizItemIds] = useState([]); // list of vizItem_ids for the search feature.
   const [vizItemsForAnimation, setVizItemsForAnimation] = useState([]); // list of subdaily_visualization_item used for animation
-  const [collectionMetadata, setCollectionMetadata] = useState({});
+
   const [showVisualizationLayers, setShowVisualizationLayers] = useState(true);
   const [showMarkerFeature, setShowMarkerFeature] = useState(true);
   const [visualizationLayers, setVisualizationLayers] = useState(true);
 
+  // states for components/controls
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  //colormap states
   //color map
   const [VMAX, setVMAX] = useState(100);
   const [VMIN, setVMIN] = useState(-92);
-  const [colormap, setColormap] = useState('default');
+  const [colormap, setColormap] = useState('plasma');
   const [assets, setAssets] = useState('rad');
-
-  // states for components/controls
-  const [openDrawer, setOpenDrawer] = useState(false);
   // console.log("data", data);
   const collectionId = data[0]?.collection;
   // console.log({dataTree})
 
   // handler functions
   const handleSelectedVizItem = (vizItemId) => {
-    if (
-      !dataTree.current ||
-      !Object.keys(dataTree.current).length ||
-      !vizItemId
-    )
-      return;
+    if (!vizItemId) return;
     setShowVisualizationLayers(true); // all the available visualization items  layers should be visible when region is selected
-    prevSelectedRegionId.current = vizItemId;
-    const regionIdFromVizId = vizItemId?.split('_')[3];
-    setSelectedRegionId(regionIdFromVizId); // an useEffect handles it further
-    const region = dataTree.current[regionIdFromVizId];
-
-    setZoomLocation(region.location);
+    const vizItem = vizItems[vizItemId];
+    const location = vizItem?.geometry?.coordinates[0][0];
+    setVisualizationLayers([vizItem]);
+    setZoomLocation(location);
     setZoomLevel(null); // take the default zoom level
     setOpenDrawer(true);
     setSelectedVizItems([]); // reset the visualization items shown, to trigger re-evaluation of selected visualization item
@@ -140,23 +134,23 @@ export function Dashboard({
     setZoomLocation([-98.771556, 32.967243]);
   };
 
-  // const handleResetToSelectedRegion = () => {
-  //   setHoveredVizItemId("");
-  //   setVizItemsForAnimation([]);
-  //   if (!prevSelectedRegionId.current) {
-  //     return handleResetHome();
-  //   }
-  //   handleSelectedVizItem(prevSelectedRegionId.current);
-  // }
+  const handleResetToSelectedRegion = () => {
+    // setHoveredVizItemId("");
+    setVizItemsForAnimation([]);
+    if (!prevSelectedRegionId.current) {
+      return handleResetHome();
+    }
+    handleSelectedVizItem(prevSelectedRegionId.current);
+  };
 
   // Component Effects
   useEffect(() => {
-    if (!dataTree.current) return;
+    if (!data.length) return;
 
     const vizItems = {}; // visualization_items[string] = visualization_item
     const regions = []; // string[]
     const vizItemIds = []; // string[] // for search
-    const testData = data.slice(0, 10);
+    // const testData = data.slice(0, 10);
     // Object.keys(dataTree.current).forEach(region => {
     //   regions.push(dataTree.current[region]);
     //   dataTree.current[region].plumes.forEach(vizItem => {
@@ -166,46 +160,48 @@ export function Dashboard({
     //   });
     // });
 
-    testData.forEach((items) => {
+    data.forEach((items) => {
       vizItems[items.id] = items;
       vizItemIds.push(items.id);
     });
-    // console.log({vizItems})
+    console.log({ vizItems });
     setVizItems(vizItems);
     setRegions(regions);
     setVizItemIds(vizItemIds); // for search
     // the reference to datatree is in current, so see changes with respect to that
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataTree.current]);
+  }, [data]);
+
+  // useEffect(() => {
+  //   if (!selectedRegionId) return;
+  //   const currentRegion = selectedRegionId;
+  //   const visualizationLayers = currentRegion.plumes.map(
+  //     (layer) => layer.representationalPlume
+  //   );
+  //   setVisualizationLayers(visualizationLayers);
+  //   setSelectedVizItems(visualizationLayers);
+  //   setVizItemsForAnimation([]); // reset the animation
+  //   setShowVisualizationLayers(true); // all the available visualization items layers should be visible when region is selected
+  //   // the reference to datatree is in current, so see changes with respect to that
+  // }, [selectedRegionId]);
 
   useEffect(() => {
-    if (!dataTree.current || !selectedRegionId) return;
-    const currentRegion = dataTree.current[selectedRegionId];
-    const visualizationLayers = currentRegion.plumes.map(
-      (layer) => layer.representationalPlume
-    );
-    setVisualizationLayers(visualizationLayers);
-    setSelectedVizItems(visualizationLayers);
-    setVizItemsForAnimation([]); // reset the animation
-    setShowVisualizationLayers(true); // all the available visualization items layers should be visible when region is selected
-    // the reference to datatree is in current, so see changes with respect to that
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataTree.current, selectedRegionId]);
-
-  useEffect(() => {
-    const colormap = collectionMeta?.renders?.dashboard?.colormap_name;
+    const colorMap = collectionMeta?.renders?.dashboard?.colormap_name;
     const rescaleValues = collectionMeta?.renders?.dashboard?.rescale;
     const VMIN = rescaleValues && rescaleValues[0][0];
     const VMAX = rescaleValues && rescaleValues[0][1];
-    setVMIN(VMIN);
-    setVMAX(VMAX);
-    setColormap(colormap);
+    setColorbaAttributes({
+      VMAX: VMAX,
+      VMIN: VMIN,
+      colorMap: colorMap,
+    });
   }, [collectionMeta]);
 
   const onFilteredVizItems = (filteredVizItems) => {
     //   setFilteredVizItems(filteredVizItems);
     //   // console.log({ filteredVizItems });
   };
+  const handleHoveredVizLayer = (vizItemId) => {};
   // JSX
   return (
     <Box className='fullSize'>
@@ -232,7 +228,7 @@ export function Dashboard({
                   VMAX={VMAX}
                   colormap={colormap}
                   assets={assets}
-                  vizItems={Object.keys(vizItems).map((key) => vizItems[key])}
+                  vizItems={vizItemsForAnimation}
                 />
               </HorizontalLayout>
             </div>
@@ -243,22 +239,23 @@ export function Dashboard({
             openDrawer={openDrawer}
             setOpenDrawer={setOpenDrawer}
             handleResetHome={handleResetHome}
-            // handleResetToSelectedRegion={handleResetToSelectedRegion}
+            handleResetToSelectedRegion={handleResetToSelectedRegion}
           />
           <MarkerFeature
             vizItems={Object.keys(vizItems).map((key) => vizItems[key])}
             onSelectVizItem={handleSelectedVizItem}
           ></MarkerFeature>
-          <VisualizationLayers
-            vizItems={visualizationLayers}
-            VMIN={VMIN}
-            VMAX={VMAX}
-            colormap={colormap}
-            assets={assets}
-            handleLayerClick={handleSelectedVizLayer}
-            hoveredVizLayerId={hoveredVizLayerId}
-            setHoveredVizLayerId={setHoveredVizLayerId}
-          />
+          {visualizationLayers.length && (
+            <VisualizationLayers
+              vizItems={visualizationLayers}
+              VMIN={VMIN}
+              VMAX={VMAX}
+              colormap={colormap}
+              assets={assets}
+              onClickOnLayer={handleSelectedVizLayer}
+              onHoverOverLayer={handleHoveredVizLayer}
+            />
+          )}
         </MainMap>
         <PersistentDrawerRight
           open={openDrawer}

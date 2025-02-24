@@ -66,7 +66,6 @@ export function PersistentDrawerRight({
   selectedVizItems,
   vizItemMetaData,
   collectionId,
-  metaDataTree,
   vizItemsMap,
   handleSelectedVizItems,
   hoveredVizItemId,

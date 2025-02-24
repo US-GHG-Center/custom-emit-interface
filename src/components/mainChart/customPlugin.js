@@ -1,8 +1,8 @@
 export const plugin = {
-  id: "corsair",
+  id: 'corsair',
   defaults: {
     width: 1,
-    color: "#DEDEDE",
+    color: '#DEDEDE',
     dash: [1000, 1000],
   },
   afterInit: (chart, args, opts) => {
