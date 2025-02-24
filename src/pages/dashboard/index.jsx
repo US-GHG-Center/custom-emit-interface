@@ -70,7 +70,7 @@ export function Dashboard({
   const [VMAX, setVMAX] = useState(100);
   const [VMIN, setVMIN] = useState(-92);
   const [colormap, setColormap] = useState('plasma');
-  const [assets, setAssets] = useState('rad');
+  const [assets, setAssets] = useState('ch4-plume-emissions');
   // console.log("data", data);
   const collectionId = data[0]?.collection;
   // console.log({dataTree})

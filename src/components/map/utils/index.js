@@ -39,26 +39,22 @@ export const addSourceLayerToMap = (
 ) => {
   if (!map || (sourceExists(map, sourceId) && layerExists(map, layerId)))
     return;
-
+  console.log({ assets });
   const collection = feature.collection; // feature.collection
   let itemId = feature.id;
-
-  // const TILE_URL =
-  //   `${process.env.REACT_APP_RASTER_API_URL}/collections/${collection}/items/${itemId}/tiles/WebMercatorQuad/{z}/{x}/{y}@1x` +
-  //   '?assets=' +
-  //   assets +
-  //   '&bidx=1' +
-  //   '&colormap_name=' +
-  //   colormap +
-  //   '&rescale=' +
-  //   VMIN +
-  //   '%2C' +
-  //   VMAX +
-  //   '&nodata=-9999';
   const TILE_URL =
-    'https://earth.gov/ghgcenter/api/raster/collections/emit-ch4plume-v1/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?item=EMIT_L2B_CH4PLM_001_20240407T152744_003123&assets=ch4-plume-emissions&bidx=1&colormap_name=plasma&rescale=0%2C1500&nodata=-9999';
-  console.log({ TILE_URL });
-
+    `${process.env.REACT_APP_RASTER_API_URL}/collections/${collection}/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?item=` +
+    itemId +
+    '&assets=' +
+    assets +
+    '&bidx=1' +
+    '&colormap_name=' +
+    colormap +
+    '&rescale=' +
+    VMIN +
+    '%2C' +
+    VMAX +
+    '&nodata=-9999';
   map.addSource(sourceId, {
     type: 'raster',
     tiles: [TILE_URL],
