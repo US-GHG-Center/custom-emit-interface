@@ -1,11 +1,8 @@
+import { Interface } from "readline";
+
 export interface Plume {
-  id: string; // Format: <country>_<state>_<region>_<plume_id>. e.g. Mexico_Durango_BV1_BV1-1
-  region: string;
-  representationalPlume: STACItem;
-  location: [Lon, Lat]; // [lon, lat]
-  startDate: DateTime;
-  endDate: DateTime;
-  subDailyPlumes: STACItem[];
+  
+  
 }
 
 export type DateTime = string;

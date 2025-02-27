@@ -1,34 +1,26 @@
-export interface PlumeMeta {
+export interface PlumePoint {
   type: string;
-  geometry: {
+  plumegeometry: {
     coordinates: [][];
     type: string;
   };
   properties: {
     longitudeOfMaxConcentration: number;
     latitudeOfMaxConcentration: number;
+    concentrationUncertanity: number;
     plumeId: string;
     maxConcentration: number;
     orbit: number;
     timeObserved: string;
     style: Style;
   };
-  id: string; // Format: <country>_<state>_<region>_<plume_id>. e.g. Mexico_Durango_BV1_BV1-1
-  country: string;
-  administrativeDivision: string;
-  //need to remove this
+  id: string;
   lat: string;
   lon: string;
-  //
   plumeSourceId: string;
-  plumeSourceName: string;
   startDatetime: string;
   endDatetime: string;
-  imageUrl: string;
   tiffUrl: string;
-  totalReleaseMass: string;
-  colEnhancements: string;
-  duration: string;
   plumeComplexCount: number;
 }
 
