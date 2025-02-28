@@ -1,4 +1,3 @@
-import { Plume, DateTime, Lon, Lat, STACItem } from './plumes';
-import { PlumePoint, Style } from './plumePoint';
+import { DateTime, Lon, Lat, STACItem, Plume } from './plumes';
 
-export type { Plume, DateTime, Lon, Lat, STACItem, PlumePoint, Style };
+export type { DateTime, Lon, Lat, STACItem, Plume };
