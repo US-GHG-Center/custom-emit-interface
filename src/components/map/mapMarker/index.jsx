@@ -15,10 +15,8 @@ export const MarkerFeature = ({ vizItems, onSelectVizItem }) => {
   const [markersVisible, setMarkersVisible] = useState(true);
   useEffect(() => {
     if (!map || !vizItems.length) return;
-
     const plottedMarkers = vizItems.map((item) => {
-      const location = item.geometry.coordinates[0][0];
-      const [lon, lat] = location;
+      const { lon, lat } = item;
       const marker = addMarker(map, lon, lat);
       const mel = marker.getElement();
       mel.addEventListener('click', (e) => {
