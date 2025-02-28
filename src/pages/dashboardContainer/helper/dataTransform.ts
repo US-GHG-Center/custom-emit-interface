@@ -1,12 +1,14 @@
-import { PlumePoint, STACItem } from '../../../dataModel';
+import { STACItem } from '../../../dataModel';
+import { Features, Metadata } from '../../../dataModel/metadata';
+import { Geometry, PointGeometry, Properties } from '../../../dataModel/plumes';
+import { Plume } from '../../../dataModel/plumes';
 import { getResultArray } from '../../../services/api';
 
-export const transformMetadata = (metadata: any, stacData: STACItem[]) => {
+export const transformMetadata = (metadata: Metadata, stacData: STACItem[]) => {
   const metaFeatures = getResultArray(metadata);
-  // Create lookup map for STAC items for O(1) access
-  const stacLookup = new Map(stacData.map((item: any) => [item.id, item]));
-  const polygonLookup = new Map();
-  let points: PlumePoint[] = [];
+
+  const polygonLookup = new Map<string, Features>();
+  let pointLookup = new Map<string, Features>();
 
   for (const feature of metaFeatures) {
     const id = feature.properties['Data Download']
@@ -17,48 +19,65 @@ export const transformMetadata = (metadata: any, stacData: STACItem[]) => {
     if (feature.geometry.type === 'Polygon') {
       polygonLookup.set(id, feature);
     } else if (feature.geometry.type === 'Point') {
-      points.push({
-        id,
-        lon: feature?.geometry?.coordinates[0],
-        lat: feature?.geometry?.coordinates[1],
-        type: 'Feature',
-        properties: {
-          longitudeOfMaxConcentration:
-            feature.properties['Longitude of max concentration'],
-          latitudeOfMaxConcentration:
-            feature.properties['Latitude of max concentration'],
-          plumeId: feature.properties['Plume ID'],
-          concentrationUncertanity:
-            feature.properties['Concentration Uncertainty (ppm m)'],
-          maxConcentration:
-            feature.properties['Max Plume Concentration (ppm m)'],
-          orbit: Number(feature.properties['Orbit']),
-          timeObserved: feature.properties['UTC Time Observed'],
-          style: feature.properties['style'],
-        },
-        plumeSourceId: feature.properties['DCID'] || '',
-        startDatetime: feature.properties['UTC Time Observed'],
-        endDatetime: feature.properties['map_endtime'],
-        tiffUrl: feature.properties['Data Download'],
-        plumeComplexCount: feature.properties['plume_complex_count'] || 0,
-        plumegeometry: polygonLookup.get(id)?.geometry,
-      });
+      pointLookup.set(id, feature);
     }
   }
-  points = points.slice(0, 200);
+  stacData = stacData.slice(0, 200);
   // Transform points to markers with associated data
-  const polygons = new Map();
-  for (const { id } of points) {
-    if (polygonLookup.has(id)) {
-      polygons.set(id, {
-        ...(stacLookup.get(id) || {}),
-        ...polygonLookup.get(id),
-      });
-    }
-  }
+  const plumes: Record<string, Plume> = {};
+  stacData.forEach((item: STACItem) => {
+    const id = item.id;
+    const pointInfo = pointLookup.get(id);
+    const polygonInfo = polygonLookup.get(id);
+    const properties: Properties = {
+      longitudeOfMaxConcentration:
+        pointInfo?.properties['Longitude of max concentration'],
+      latitudeOfMaxConcentration:
+        pointInfo?.properties['Latitude of max concentration'],
+      plumeId: pointInfo?.properties['Plume ID'],
+      concentrationUncertanity:
+        pointInfo?.properties['Concentration Uncertainty (ppm m)'],
+      maxConcentration:
+        pointInfo?.properties['Max Plume Concentration (ppm m)'],
+      orbit: Number(pointInfo?.properties['Orbit']),
+      utcTimeObserved: pointInfo?.properties['UTC Time Observed'],
+      pointStyle: pointInfo?.properties['style'],
+      polygonStyle: polygonInfo?.properties['style'],
+      plumeCountNumber: pointInfo?.properties?.plume_complex_count,
+      assetLink: pointInfo?.properties['Data Download'],
+      dcid: pointInfo?.properties?.DCID,
+      daacSceneNumber: pointInfo?.properties['DAAC Scene Numbers'],
+      sceneFID: pointInfo?.properties['Scene FIDs'],
+      mapEndTime: pointInfo?.properties?.map_endtime,
+    };
+    const lon =
+      pointInfo?.geometry?.type === 'Point'
+        ? (pointInfo.geometry.coordinates as number[])[0]
+        : undefined;
+    const lat =
+      pointInfo?.geometry?.type === 'Point'
+        ? (pointInfo.geometry.coordinates as number[])[1]
+        : undefined;
+    plumes[id] = {
+      id: item.id,
+      bbox: item.bbox,
+      type: item.type,
+      lat: lat,
+      lon: lon,
+      links: item.links,
+      assets: item.assets,
+      geometry: item.geometry,
+      collection: item.collection,
+      properties: item.properties,
+      plumeProperties: properties,
+      pointGeometry: pointInfo?.geometry as PointGeometry,
+      polygonGeometry: polygonInfo?.geometry as Geometry,
+      stac_version: item.stac_version,
+      stac_extensions: item.stac_extensions,
+    };
+  });
 
   return {
-    markers: points,
-    polygons: polygons,
+    data: plumes,
   };
 };

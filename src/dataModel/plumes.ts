@@ -1,13 +1,52 @@
-import { Interface } from "readline";
-
-export interface Plume {
-  
-  
-}
-
 export type DateTime = string;
 export type Lon = string;
 export type Lat = string;
+
+export interface Plume {
+  id: string;
+  bbox: number[];
+  type: string;
+  links: Link[];
+  lat?: number;
+  lon?: number;
+  assets: Record<string, Asset>;
+  geometry: Geometry;
+  collection: string;
+  properties: {
+    datetime: string;
+  };
+  plumeProperties: Properties;
+  pointGeometry?: PointGeometry;
+  polygonGeometry?: Geometry;
+  stac_version: string;
+  stac_extensions?: string[];
+}
+export interface Properties {
+  longitudeOfMaxConcentration?: number;
+  latitudeOfMaxConcentration?: number;
+  concentrationUncertanity?: number;
+  plumeId?: string;
+  maxConcentration?: number;
+  orbit?: number;
+  utcTimeObserved?: string;
+  pointStyle?: Style;
+  polygonStyle?: Style;
+  plumeCountNumber?: number;
+  assetLink?: string;
+  dcid?: string;
+  daacSceneNumber?: string[];
+  sceneFID?: string[];
+  mapEndTime?: string;
+}
+export interface Style {
+  color: string;
+  fillOpacity: number;
+  maxZoom: number;
+  minZoom: number;
+  opacity: number;
+  radius: number;
+  weight: number;
+}
 
 // Stac Item defination
 export interface STACItem {
@@ -76,9 +115,13 @@ interface Statistics {
   valid_percent: number;
 }
 
-interface Geometry {
+export interface Geometry {
   type: string;
-  coordinates: string[][][];
+  coordinates: number[][][];
+}
+export interface PointGeometry {
+  type: string;
+  coordinates: number[];
 }
 
 interface ProjJSON {
