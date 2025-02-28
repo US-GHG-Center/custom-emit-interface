@@ -39,7 +39,6 @@ export const addSourceLayerToMap = (
 ) => {
   if (!map || (sourceExists(map, sourceId) && layerExists(map, layerId)))
     return;
-  console.log({ assets });
   const collection = feature.collection; // feature.collection
   let itemId = feature.id;
   const TILE_URL =
@@ -69,7 +68,10 @@ export const addSourceLayerToMap = (
     layout: {
       visibility: 'none', // Set the layer to be hidden initially
     },
-    paint: {},
+    paint: {
+      'fill-outline-color': '#20B2AA',
+      'fill-color': 'transparent',
+    },
   });
 };
 
@@ -111,7 +113,7 @@ export const addSourcePolygonToMap = (
     (sourceExists(map, polygonSourceId) && layerExists(map, polygonLayerId))
   )
     return;
-
+  // console.log("Adding Polygon",polygonFeature)
   map.addSource(polygonSourceId, {
     type: 'geojson',
     data: feature,
@@ -119,12 +121,12 @@ export const addSourcePolygonToMap = (
 
   map.addLayer({
     id: polygonLayerId,
-    type: 'fill',
+    type: 'line',
     source: polygonSourceId,
     layout: {},
     paint: {
-      'fill-outline-color': '#20B2AA',
-      'fill-color': 'transparent',
+      'line-color': '#0098d7',
+      'line-width': 2,
     },
   });
 };
