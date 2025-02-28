@@ -24,12 +24,12 @@ import './index.css';
 import { useMapbox } from '../../components';
 import { isFeatureWithinBounds } from './helper';
 
-const TITLE = 'GOES Methane Plume Viewer';
+const TITLE = 'EMIT Methane Plume Viewer';
 const DESCRIPTION =
-  'The Geostationary Operational Environmental Satellites collect \
-images of the surface every 5 minutes. Only very large emission events can be detected, \
-but plume expansion is easy to see over time. More plumes will be added soon.';
-
+  'Using a special technique, the EMIT hyperspectral data\
+   is used to visualize large methane plumes whenever the instrument \
+   observes the surface. Due variations of the International Space Station orbit,\
+   EMIT does not have a regular observation repeat cycle.';
 const HorizontalLayout = styled.div`
   width: 90%;
   display: flex;
@@ -170,14 +170,12 @@ function Dashboard({
       // const layers = map.getStyle().layers;
       // console.log({ layers });
       renderRasterOnZoomed(bounds, zoom);
-    }
+    };
     map.on('zoomend', handleZoom);
     return () => {
       map.off('zoomend', handleZoom);
     };
   }, [map]);
-
- 
 
   useEffect(() => {
     const colormap = collectionMeta?.renders?.dashboard?.colormap_name;
@@ -193,7 +191,9 @@ function Dashboard({
     //   setFilteredVizItems(filteredVizItems);
     //   // console.log({ filteredVizItems });
   };
-  const handleHoveredVizLayer = (vizItemId) => {};
+  const handleHoveredVizLayer = (vizItemId) => {
+    // console.log({ vizItemId });
+  };
   // JSX
   return (
     <Box className='fullSize'>
