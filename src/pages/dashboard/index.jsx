@@ -104,22 +104,9 @@ export function Dashboard({
   };
 
   const handleResetHome = () => {
-    setSelectedRegionId('');
-    setHoveredVizLayerId('');
-    setFilteredVizItems([]);
-    setVizItemsForAnimation([]);
     setOpenDrawer(false);
     setZoomLevel(4);
     setZoomLocation([-98.771556, 32.967243]);
-  };
-
-  const handleResetToSelectedRegion = () => {
-    // setHoveredVizItemId("");
-    setVizItemsForAnimation([]);
-    if (!prevSelectedRegionId.current) {
-      return handleResetHome();
-    }
-    handleSelectedVizItem(prevSelectedRegionId.current);
   };
 
   const handleHoveredVizLayer = (vizItemId) => {
@@ -205,7 +192,6 @@ export function Dashboard({
             openDrawer={openDrawer}
             setOpenDrawer={setOpenDrawer}
             handleResetHome={handleResetHome}
-            handleResetToSelectedRegion={handleResetToSelectedRegion}
           />
           <MapViewPortComponent
             filteredVizItems={filteredVizItems}
