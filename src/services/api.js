@@ -22,6 +22,11 @@ export const fetchCollectionMetadata = async (collectionUrl) => {
   }
 };
 
+export const getCoverageData = async (url) => {
+  const coverageData = await fetchData(url);
+  return coverageData;
+};
+
 export const getLocationForFeature = async (feature) => {
   const response = await fetch(LOCATION_LOOKUP_PATH);
   const lookup_location = await response.json();

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Slider, Typography, Box } from '@mui/material';
 import moment from 'moment';
+
 /*
       Filter stacItem based on the date range
 
@@ -9,12 +10,13 @@ import moment from 'moment';
       
 */
 
-export function FilterByDate({ vizItems, onFilteredItems }) {
-  const minDate = moment('2018-01-01').valueOf();
+export function FilterByDate({ vizItems, onFilteredItems, onDateChange }) {
+  const minDate = moment('2022-08-09').valueOf();
   const maxDate = moment().valueOf();
   const [dateRange, setDateRange] = useState([minDate, maxDate]);
 
   const handleSliderChange = (_, dateRange) => {
+    onDateChange(dateRange);
     const filteredVizItems = vizItems.filter((vizItem) => {
       const vizItemDate = moment(vizItem?.properties?.datetime).valueOf();
       const item = vizItemDate >= dateRange[0] && vizItemDate <= dateRange[1];
@@ -24,32 +26,40 @@ export function FilterByDate({ vizItems, onFilteredItems }) {
   };
 
   return (
-    <Box sx={{ width: '90%', padding: '20px' }}>
+    <Box
+      sx={{
+        width: '100%',
+        padding: '20px 15px 20px 10px',
+      }}
+    >
       <Typography
         gutterBottom
         sx={{
-          marginBottom: '10px',
+          marginBottom: '0px',
           color: '#082A63',
           display: 'flex',
           justifyContent: 'center',
           fontWeight: 550,
+          fontSize: '16px',
+          fontFamily: 'inherit',
         }}
       >
         {moment(dateRange[0]).format('ddd, DD MMM YYYY')} -{' '}
         {moment(dateRange[1]).format('ddd, DD MMM YYYY')}
       </Typography>
-
-      <Box sx={{ position: 'relative', height: '8px', marginTop: '10px' }}>
-        {/* MUI Slider */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Slider
           value={dateRange}
-          onChange={(_, newValue) => setDateRange(newValue)}
+          onChange={(_, newValue) => {
+            setDateRange(newValue);
+          }}
           onChangeCommitted={(_, newValue) => handleSliderChange(_, newValue)}
           getAriaLabel={() => 'Date range'}
           min={minDate}
           max={maxDate}
           step={86400000} // One day step
           sx={{
+            display: 'flex',
             height: '8px',
             '& .MuiSlider-track': {
               backgroundColor: '#082A63',
@@ -75,7 +85,44 @@ export function FilterByDate({ vizItems, onFilteredItems }) {
             },
           }}
         />
-      </Box>
+
+        <div
+          style={{
+            display: 'flex',
+            margin: '-4px',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Typography
+            gutterBottom
+            sx={{
+              marginBottom: '0px',
+              color: '#082A63',
+              display: 'flex',
+              justifyContent: 'center',
+              fontWeight: 550,
+              fontSize: '14px',
+              fontFamily: 'inherit',
+            }}
+          >
+            Start Date
+          </Typography>
+          <Typography
+            gutterBottom
+            sx={{
+              marginBottom: '0px',
+              color: '#082A63',
+              display: 'flex',
+              justifyContent: 'center',
+              fontWeight: 550,
+              fontSize: '14px',
+              fontFamily: 'inherit',
+            }}
+          >
+            End Date
+          </Typography>
+        </div>
+      </div>
     </Box>
   );
 }

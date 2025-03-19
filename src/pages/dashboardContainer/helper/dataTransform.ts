@@ -1,7 +1,16 @@
-import { STACItem } from '../../../dataModel';
-import { Features, Metadata } from '../../../dataModel';
+import {
+  Features,
+  Metadata,
+  STACItem,
+  Plume,
+  PointGeometry,
+  Geometry,
+  Properties,
+  CoverageData,
+  CoverageFeature,
+  CoverageGeoJsonData,
+} from '../../../dataModel';
 
-import { Plume, PointGeometry, Geometry, Properties } from '../../../dataModel';
 import {
   getAllLocation,
   getResultArray,
@@ -21,7 +30,7 @@ const reverseGeocoding = async (
     const lat = feature.properties['Latitude of max concentration'];
     const lon = feature.properties['Longitude of max concentration'];
     const location = await fetchLocationFromEndpoint(lat, lon);
-    console.log({ location });
+    // console.log({ location });
     return location;
   }
 };
@@ -115,3 +124,47 @@ export const transformMetadata = async (
     data: plumes,
   };
 };
+
+const roundCoordinates = (geometry: Geometry) => {
+  if (geometry && geometry.coordinates) {
+    geometry.coordinates = geometry.coordinates.map((polygon) =>
+      polygon.map(
+        (coord) => coord.map((value) => Math.round(value * 100) / 100) // Round to 2 decimal places
+      )
+    );
+  }
+  return geometry;
+};
+
+export function createIndexedCoverageData(coverageData: CoverageData) {
+  const coverageFeatures: CoverageFeature[] = coverageData.features;
+  const processedCoverages = coverageFeatures.map((feature) => {
+    const processedFeature: CoverageFeature = {
+      properties: {
+        start_time: feature.properties['start_time'],
+        end_time: feature.properties['end_time'],
+      },
+      geometry: roundCoordinates(feature.geometry),
+    } as CoverageFeature;
+    return processedFeature;
+  });
+
+  // Create sorted array of features by date for binary search
+  const sortedFeatures: CoverageFeature[] = [...processedCoverages].sort(
+    (a, b) => {
+      const dateA = new Date(
+        a.properties.start_time || a.properties.start_time || 0
+      );
+      const dateB = new Date(
+        b.properties.start_time || b.properties.start_time || 0
+      );
+      return dateA.getTime() - dateB.getTime();
+    }
+  );
+  const result: CoverageGeoJsonData = {
+    type: 'FeatureCollection',
+    features: sortedFeatures,
+  };
+
+  return result;
+}

@@ -1,3 +1,4 @@
+import * as turf from '@turf/turf';
 /*
       Get id for source
 
@@ -165,3 +166,61 @@ export const addFillPolygonToMap = (
     },
   });
 };
+
+export const addCoveragePolygon = (
+  map,
+  polygonSourceId,
+  polygonLayerId,
+  polygonFeature
+) => {
+  if (!map.isStyleLoaded()) {
+    map.once('style.load', () =>
+      addCoveragePolygon(map, polygonSourceId, polygonLayerId, polygonFeature)
+    );
+    return;
+  }
+
+  if (!map.getSource(polygonSourceId)) {
+    map.addSource(polygonSourceId, {
+      type: 'geojson',
+      data: polygonFeature,
+    });
+  }
+
+  if (!map.getLayer(polygonLayerId)) {
+    map.addLayer({
+      id: polygonLayerId,
+      type: 'fill',
+      source: polygonSourceId,
+      layout: {},
+      paint: {
+        'fill-outline-color': '#1E90FF',
+        'fill-color': 'rgba(173, 216, 230, 0.4)',
+      },
+    });
+
+    // Ensure coverage layer stays below rasters
+    const layers = map.getStyle().layers;
+    // console.log({ layers });
+    const rasterLayers = layers.filter((layer) =>
+      layer.id.startsWith('raster-')
+    );
+    if (rasterLayers.length > 0) {
+      const firstRasterLayerId = rasterLayers[0].id;
+      map.moveLayer(polygonLayerId, firstRasterLayerId);
+    }
+  }
+};
+
+export function isFeatureWithinBounds(feature, bounds) {
+  // Create a bounding box feature from the map bounds
+  const boundingBox = turf.bboxPolygon([
+    bounds._sw.lng,
+    bounds._sw.lat,
+    bounds._ne.lng,
+    bounds._ne.lat,
+  ]);
+
+  // Check if the feature intersects with the bounding box
+  return turf.booleanIntersects(feature, boundingBox);
+}
