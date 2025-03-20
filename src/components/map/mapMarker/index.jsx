@@ -13,25 +13,46 @@ import './index.css';
 export const MarkerFeature = ({ vizItems, onSelectVizItem }) => {
   const { map } = useMapbox();
   const [markersVisible, setMarkersVisible] = useState(true);
+
   useEffect(() => {
     if (!map || !vizItems.length) return;
 
     const plottedMarkers = vizItems.map((item) => {
-      const { lon, lat } = item
+      const { lon, lat, plumeProperties } = item;
+      const { location, utcTimeObserved, plumeId } = plumeProperties;
+
       const marker = addMarker(map, lon, lat);
+      const popup = getPopup(location, utcTimeObserved, plumeId);
+      marker.setPopup(popup);
       const mel = marker.getElement();
-      mel.addEventListener('click', (e) => {
-        onSelectVizItem && onSelectVizItem(item.id);
-      });
+
+      const handleClick = () => onSelectVizItem && onSelectVizItem(item.id);
+      const handleMouseEnter = () => {
+        popup.addTo(map);
+      };
+      const handleMouseLeave = () => {
+        // onHoverVizItem && onHoverVizItem(item.id);
+        popup.remove();
+      };
+
+      mel.addEventListener('click', handleClick);
+      mel.addEventListener('mouseenter', handleMouseEnter);
+      mel.addEventListener('mouseleave', handleMouseLeave);
+
       mel.style.display = markersVisible ? 'block' : 'none';
-      return mel;
+      return { mel, handleClick, handleMouseLeave, handleMouseEnter };
     });
 
-    // clean-ups
+    // clean-upss
     return () => {
-      plottedMarkers.forEach((marker) => {
-        marker.parentNode.removeChild(marker);
-      });
+      plottedMarkers.forEach(
+        ({ mel, handleClick, handleMouseLeave, handleMouseEnter }) => {
+          mel.removeEventListener('click', handleClick);
+          mel.removeEventListener('mouseenter', handleMouseEnter);
+          mel.removeEventListener('mouseleave', handleMouseLeave);
+          mel.parentNode.removeChild(mel);
+        }
+      );
     };
   }, [vizItems, map, onSelectVizItem, markersVisible]);
 
@@ -52,6 +73,14 @@ export const MarkerFeature = ({ vizItems, onSelectVizItem }) => {
   return null;
 };
 
+const getPopup = (location, utcTimeObserved, id) => {
+  const popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+  }).setHTML(getPopupContent(location, utcTimeObserved, id));
+  return popup;
+};
+
 const addMarker = (map, longitude, latitude) => {
   const el = document.createElement('div');
   el.className = 'marker';
@@ -61,6 +90,16 @@ const addMarker = (map, longitude, latitude) => {
     .setLngLat([longitude, latitude])
     .addTo(map);
   return marker;
+};
+
+export const getPopupContent = (location, utcTimeObserved, id) => {
+  return `
+        <table style="line-height: 1.4; font-size: 11px;">
+            <tr><td><strong>ID:</strong></td><td>${id}</td></tr>
+            <tr><td><strong>Location:</strong></td><td>${location}</td></tr>
+            <tr><td><strong>Date:</strong></td><td>${utcTimeObserved}</td></tr>
+        </table>
+    `;
 };
 
 const getMarkerSVG = (color, strokeColor = '#000000') => {
