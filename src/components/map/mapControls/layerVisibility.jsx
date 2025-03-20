@@ -17,7 +17,7 @@ function VisibilityIconComp({ map }) {
       rasterLayersCurrentVisibility.current = {};
       const layers = map.getStyle().layers;
       layers.forEach((layer) => {
-        if (layer.id.includes('raster-layer')) {
+        if (layer.id.includes('raster-')) {
           if (!layer.layout) return;
           rasterLayersCurrentVisibility.current[layer.id] =
             layer.layout.visibility;
