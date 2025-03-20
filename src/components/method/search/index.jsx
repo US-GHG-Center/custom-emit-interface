@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { TrieSearch } from './helper/trieSearch';
+import { selectClasses } from '@mui/material';
 /*
       Search stacItem compoents
 
@@ -40,7 +41,9 @@ export function Search({ vizItems, onSelectedVizItemSearch }) {
   };
 
   const handleOnOptionClicked = (event, clickedValue) => {
-    onSelectedVizItemSearch(clickedValue);
+    const temp = clickedValue.split('_')[3];
+    const vizItemId = temp.split('-').join('_');
+    onSelectedVizItemSearch(vizItemId);
   };
 
   useEffect(() => {
