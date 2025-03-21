@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { TrieSearch } from './helper/trieSearch';
-import { selectClasses } from '@mui/material';
+
 /*
       Search stacItem compoents
 
