@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { TrieSearch } from './helper/trieSearch';
+
 /*
       Search stacItem compoents
 
@@ -14,19 +15,23 @@ import { TrieSearch } from './helper/trieSearch';
 */
 export function Search({ vizItems, onSelectedVizItemSearch }) {
   const ids = vizItems?.map((vizItem) => {
-    const id = vizItem?.id
-    const location = vizItem?.plumeProperties?.location
-    const idString = id.split('_').join('-')
-    const locationString = location?.split(',').reverse().map((part) => part.trim()).join('_')
-    return `${locationString}_${idString}`
+    const id = vizItem?.id;
+    const location = vizItem?.plumeProperties?.location;
+    const idString = id.split('_').join('-');
+    const locationString = location
+      ?.split(',')
+      .reverse()
+      .map((part) => part.trim())
+      .join('_');
+    return `${locationString}_${idString}`;
   });
-  
+
   const trieSearch = useRef(null);
   const [searchOptions, setSearchOptions] = useState([]);
 
   const handleSearch = (prefix) => {
     const searchResult = trieSearch.current.getRecommendations(prefix);
-
+    return searchResult;
   };
 
   const handleOnInputTextChange = (event) => {
@@ -36,7 +41,9 @@ export function Search({ vizItems, onSelectedVizItemSearch }) {
   };
 
   const handleOnOptionClicked = (event, clickedValue) => {
-    onSelectedVizItemSearch(clickedValue);
+    const temp = clickedValue.split('_')[3];
+    const vizItemId = temp.split('-').join('_');
+    onSelectedVizItemSearch(vizItemId);
   };
 
   useEffect(() => {
