@@ -10,75 +10,84 @@ import './index.css';
 */
 
 // eslint-disable-next-line prettier/prettier
-export const MarkerFeature = ({ vizItems, onSelectVizItem }) => {
+export const MarkerFeature = ({
+  vizItems,
+  onSelectVizItem,
+  getPopupContent,
+}) => {
   const { map } = useMapbox();
   const [markersVisible, setMarkersVisible] = useState(true);
+  const [activePopup, setActivePopup] = useState(null);
 
   useEffect(() => {
     if (!map || !vizItems.length) return;
 
+    const getPopup = (vizItem) => {
+      const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+      }).setHTML(getPopupContent(vizItem));
+      return popup;
+    };
+
     const plottedMarkers = vizItems.map((item) => {
-      const { lon, lat, plumeProperties } = item;
-      const { location, utcTimeObserved, plumeId } = plumeProperties;
-
+      const { lon, lat } = item;
       const marker = addMarker(map, lon, lat);
-      const popup = getPopup(location, utcTimeObserved, plumeId);
-      marker.setPopup(popup);
-      const mel = marker.getElement();
-
       const handleClick = () => onSelectVizItem && onSelectVizItem(item.id);
+      let popup = null;
+
       const handleMouseEnter = () => {
-        popup.addTo(map);
-      };
-      const handleMouseLeave = () => {
-        // onHoverVizItem && onHoverVizItem(item.id);
-        popup.remove();
+        if (getPopupContent) {
+          if (!popup) {
+            popup = getPopup(item);
+          }
+          marker.setPopup(popup);
+          popup.addTo(map);
+          setActivePopup(popup);
+        }
       };
 
+      const handleMouseLeave = () => {
+        if (popup && getPopupContent) {
+          popup.remove();
+          setActivePopup(null);
+        }
+      };
+      const mel = marker.getElement();
       mel.addEventListener('click', handleClick);
       mel.addEventListener('mouseenter', handleMouseEnter);
       mel.addEventListener('mouseleave', handleMouseLeave);
 
       mel.style.display = markersVisible ? 'block' : 'none';
-      return { mel, handleClick, handleMouseLeave, handleMouseEnter };
+      return { mel, handleClick, handleMouseLeave, handleMouseEnter, popup };
     });
 
     // clean-upss
     return () => {
       plottedMarkers.forEach(
-        ({ mel, handleClick, handleMouseLeave, handleMouseEnter }) => {
+        ({ mel, handleClick, handleMouseLeave, handleMouseEnter, popup }) => {
           mel.removeEventListener('click', handleClick);
           mel.removeEventListener('mouseenter', handleMouseEnter);
           mel.removeEventListener('mouseleave', handleMouseLeave);
           mel.parentNode.removeChild(mel);
+          if (popup) popup.remove();
         }
       );
+      if (activePopup) activePopup.remove();
     };
   }, [vizItems, map, onSelectVizItem, markersVisible]);
 
   useEffect(() => {
     if (!map) return;
-
     const threshold = 8;
-    map.on('zoom', () => {
-      const currentZoom = map.getZoom();
-      if (currentZoom <= threshold) {
-        setMarkersVisible(true);
-      } else {
-        setMarkersVisible(false);
-      }
-    });
+    const updateMarkersVisibility = () =>
+      setMarkersVisible(map.getZoom() <= threshold);
+
+    map.on('zoom', updateMarkersVisibility);
+    return () => map.off('zoom', updateMarkersVisibility);
   }, [map]);
 
   return null;
-};
-
-const getPopup = (location, utcTimeObserved, id) => {
-  const popup = new mapboxgl.Popup({
-    closeButton: false,
-    closeOnClick: false,
-  }).setHTML(getPopupContent(location, utcTimeObserved, id));
-  return popup;
 };
 
 const addMarker = (map, longitude, latitude) => {
@@ -90,16 +99,6 @@ const addMarker = (map, longitude, latitude) => {
     .setLngLat([longitude, latitude])
     .addTo(map);
   return marker;
-};
-
-export const getPopupContent = (location, utcTimeObserved, id) => {
-  return `
-        <table style="line-height: 1.4; font-size: 11px;">
-            <tr><td><strong>ID:</strong></td><td>${id}</td></tr>
-            <tr><td><strong>Location:</strong></td><td>${location}</td></tr>
-            <tr><td><strong>Date:</strong></td><td>${utcTimeObserved}</td></tr>
-        </table>
-    `;
 };
 
 const getMarkerSVG = (color, strokeColor = '#000000') => {
