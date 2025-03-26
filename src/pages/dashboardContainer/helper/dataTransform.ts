@@ -62,14 +62,12 @@ export const transformMetadata = async (
     const next_date = new Date(next.properties.datetime).getTime();
     return prev_date - next_date;
   });
-  // for test purposes only 
-  // stacData = sortedData.slice(0, 200);
   // Transform stac data to markers with associated data
   const plumes: Record<string, Plume> = {};
-  stacData.forEach(async (item: STACItem) => {
+  sortedData.forEach(async (item: STACItem) => {
     const id = item.id;
-    const pointInfo:Features = pointLookup.get(id) as Features;
-    const polygonInfo:Features = polygonLookup.get(id) as Features;
+    const pointInfo: Features = pointLookup.get(id) as Features;
+    const polygonInfo: Features = polygonLookup.get(id) as Features;
     const location = await reverseGeocoding(allLocation, pointInfo as Features);
     const properties: Properties = {
       longitudeOfMaxConcentration:
