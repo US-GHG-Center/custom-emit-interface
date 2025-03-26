@@ -5,7 +5,7 @@ import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import CssBaseline from '@mui/material/CssBaseline';
 import { VisualizationItemCard } from '../card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import './index.css';
 
@@ -69,6 +69,8 @@ export function PersistentDrawerRight({
   onHoverOnVizLayer,
 }) {
   const [numberOfVizItems, setNumberOfVizItems] = useState(0);
+  const highlightedCardRef = useRef(null);
+
   const handleDrawerClose = () => {
     setOpen(false);
   };
@@ -81,6 +83,15 @@ export function PersistentDrawerRight({
     const numberOfVizItems = selectedVizItems.length;
     setNumberOfVizItems(numberOfVizItems);
   }, [selectedVizItems]);
+
+  useEffect(() => {
+    if (hoveredVizLayerId && highlightedCardRef.current) {
+      highlightedCardRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [hoveredVizLayerId]);
 
   // console.log({ selectedVizItems });
 
@@ -131,6 +142,11 @@ export function PersistentDrawerRight({
           selectedVizItems?.map((selectedVizItem) => (
             <VisualizationItemCard
               key={selectedVizItem?.id}
+              ref={
+                selectedVizItem?.id === hoveredVizLayerId
+                  ? highlightedCardRef
+                  : null
+              }
               vizItem={selectedVizItem}
               collectionId={collectionId}
               onSelectVizLayer={onSelectVizLayer}
