@@ -110,28 +110,28 @@ const DefaultMapControls = ({
     };
   }, [map, mapScaleUnit, measureMode]);
 
-  useEffect(() => {
-    if (!map) return;
+  // useEffect(() => {
+  //   if (!map) return;
 
-    const clearMeasurementControl = clearMeasurementIcon
-      ? new ClearMeasurementControl(onClickClearIcon)
-      : null;
+  //   const clearMeasurementControl = clearMeasurementIcon
+  //     ? new ClearMeasurementControl(onClickClearIcon)
+  //     : null;
 
-    if (clearMeasurementIcon) {
-      const mapboxCustomControlContainer = document.querySelector(
-        '#mapbox-custom-controls'
-      );
-      const clearMeasurementControlElem = clearMeasurementControl.onAdd(map);
-      mapboxCustomControlContainer.append(clearMeasurementControlElem);
-    }
+  //   if (clearMeasurementIcon) {
+  //     const mapboxCustomControlContainer = document.querySelector(
+  //       '#mapbox-custom-controls'
+  //     );
+  //     const clearMeasurementControlElem = clearMeasurementControl.onAdd(map);
+  //     mapboxCustomControlContainer.append(clearMeasurementControlElem);
+  //   }
 
-    return () => {
-      // clean ups
-      if (clearMeasurementControl && clearMeasurementIcon) {
-        clearMeasurementControl.onRemove();
-      }
-    };
-  }, [map, clearMeasurementIcon, measureMode]);
+  //   return () => {
+  //     // clean ups
+  //     if (clearMeasurementControl && clearMeasurementIcon) {
+  //       clearMeasurementControl.onRemove();
+  //     }
+  //   };
+  // }, [map, clearMeasurementIcon, measureMode]);
 
   useEffect(() => {
     const unit = mapScaleUnit === 'km' ? 'metric' : 'imperial';
