@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
-
 import { useMapbox } from '../../../context/mapContext';
 import './index.css';
+
 /*
   Add marker on map
   @param {STACItem} vizItems   - An array of stac items which are to be rendered as markers
-  @param {function} onSelectVizItem  - function to execute when the marker is clicked . will provide vizItemId as a parameter to the callback
+  @param {function} onSelectVizItem  - function to execute when the marker is clicked. will provide vizItemId as a parameter to the callback
+  @param {function} [getPopupContent]  - Optional function to generate popup content for markers
 */
-
-// eslint-disable-next-line prettier/prettier
 export const MarkerFeature = ({
   vizItems,
   onSelectVizItem,
@@ -19,27 +18,36 @@ export const MarkerFeature = ({
   const [markersVisible, setMarkersVisible] = useState(true);
   const [activePopup, setActivePopup] = useState(null);
 
-  useEffect(() => {
-    if (!map || !vizItems.length) return;
+  // Use ref to track markers for proper cleanup
+  const markersRef = useRef([]);
 
-    const getPopup = (vizItem) => {
-      const popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-      }).setHTML(getPopupContent(vizItem));
-      return popup;
-    };
+  // Memoize marker creation to prevent unnecessary re-renders
+  const createMarker = useCallback(
+    (item) => {
+      const { lon, lat, id } = item;
+      const el = document.createElement('div');
+      el.className = 'marker';
+      const markerColor = '#00b7eb';
+      el.innerHTML = getMarkerSVG(markerColor);
 
-    const plottedMarkers = vizItems.map((item) => {
-      const { lon, lat } = item;
-      const marker = addMarker(map, lon, lat);
-      const handleClick = () => onSelectVizItem && onSelectVizItem(item.id);
+      const marker = new mapboxgl.Marker(el).setLngLat([lon, lat]).addTo(map);
+      const markerElement = marker.getElement();
+
+      const handleClick = (e) => {
+        // e.stopPropagation();
+        onSelectVizItem && onSelectVizItem(id);
+      };
+
+      markerElement.addEventListener('click', handleClick);
+
       let popup = null;
-
       const handleMouseEnter = () => {
         if (getPopupContent) {
           if (!popup) {
-            popup = getPopup(item);
+            popup = new mapboxgl.Popup({
+              closeButton: false,
+              closeOnClick: false,
+            }).setHTML(getPopupContent(item));
           }
           marker.setPopup(popup);
           popup.addTo(map);
@@ -53,66 +61,112 @@ export const MarkerFeature = ({
           setActivePopup(null);
         }
       };
-      const mel = marker.getElement();
-      mel.addEventListener('click', handleClick);
-      mel.addEventListener('mouseenter', handleMouseEnter);
-      mel.addEventListener('mouseleave', handleMouseLeave);
 
-      mel.style.display = markersVisible ? 'block' : 'none';
-      return { mel, handleClick, handleMouseLeave, handleMouseEnter, popup };
+      markerElement.addEventListener('mouseenter', handleMouseEnter);
+      markerElement.addEventListener('mouseleave', handleMouseLeave);
+
+      return {
+        marker,
+        element: markerElement,
+        clickHandler: handleClick,
+        mouseEnterHandler: handleMouseEnter,
+        mouseLeaveHandler: handleMouseLeave,
+        popup,
+        id,
+      };
+    },
+    [map, onSelectVizItem, getPopupContent]
+  );
+
+  // Main markers effect
+  useEffect(() => {
+    if (!map || !vizItems.length) return;
+
+    // Create new markers
+    const newMarkers = vizItems.map(createMarker);
+
+    // Update visibility
+    newMarkers.forEach(({ element }) => {
+      element.style.display = markersVisible ? 'block' : 'none';
     });
 
-    // clean-upss
+    // Cleanup previous markers
+    markersRef.current.forEach(
+      ({
+        marker,
+        element,
+        mouseEnterHandler,
+        clickHandler,
+        mouseLeaveHandler,
+        popup,
+      }) => {
+        // Remove previous event listeners
+        element.removeEventListener('mouseenter', mouseEnterHandler);
+        element.removeEventListener('mouseleave', mouseLeaveHandler);
+        element.removeEventListener('click', clickHandler);
+        marker.remove();
+        if (popup) popup.remove();
+      }
+    );
+
+    // Update markers ref
+    markersRef.current = newMarkers;
+
+    // Cleanup function
     return () => {
-      plottedMarkers.forEach(
-        ({ mel, handleClick, handleMouseLeave, handleMouseEnter, popup }) => {
-          mel.removeEventListener('click', handleClick);
-          mel.removeEventListener('mouseenter', handleMouseEnter);
-          mel.removeEventListener('mouseleave', handleMouseLeave);
-          mel.parentNode.removeChild(mel);
+      newMarkers.forEach(
+        ({
+          marker,
+          element,
+          mouseEnterHandler,
+          clickHandler,
+          mouseLeaveHandler,
+          popup,
+        }) => {
+          element.removeEventListener('mouseenter', mouseEnterHandler);
+          element.removeEventListener('mouseleave', mouseLeaveHandler);
+          element.removeEventListener('click', clickHandler);
+          marker.remove();
           if (popup) popup.remove();
         }
       );
+      markersRef.current = [];
       if (activePopup) activePopup.remove();
     };
-  }, [vizItems, map, onSelectVizItem, markersVisible]);
+  }, [vizItems, map, createMarker, markersVisible, activePopup]);
 
+  // Zoom-based visibility effect
   useEffect(() => {
     if (!map) return;
-    const threshold = 8;
-    const updateMarkersVisibility = () =>
-      setMarkersVisible(map.getZoom() <= threshold);
 
-    map.on('zoom', updateMarkersVisibility);
-    return () => map.off('zoom', updateMarkersVisibility);
+    const handleZoom = () => {
+      const currentZoom = map.getZoom();
+      const threshold = 8;
+      setMarkersVisible(currentZoom <= threshold);
+    };
+
+    // Add zoom event listener
+    map.on('zoom', handleZoom);
+
+    // Cleanup zoom event listener
+    return () => {
+      map.off('zoom', handleZoom);
+    };
   }, [map]);
 
   return null;
 };
 
-const addMarker = (map, longitude, latitude) => {
-  const el = document.createElement('div');
-  el.className = 'marker';
-  const markerColor = '#00b7eb';
-  el.innerHTML = getMarkerSVG(markerColor);
-  let marker = new mapboxgl.Marker(el)
-    .setLngLat([longitude, latitude])
-    .addTo(map);
-  return marker;
-};
-
+// Marker SVG generation function
 const getMarkerSVG = (color, strokeColor = '#000000') => {
   return `
-        <svg fill="${color}" width="30px" height="30px" viewBox="-51.2 -51.2 614.40 614.40" xmlns="http://www.w3.org/2000/svg">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="${strokeColor}"
-                stroke-width="10.24">
-                <path
-                    d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"></path>
-            </g>
-            <g id="SVGRepo_iconCarrier">
-                <path
-                    d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"></path>
-            </g>
-        </svg>`;
+    <svg fill="${color}" width="30px" height="30px" viewBox="-51.2 -51.2 614.40 614.40" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="${strokeColor}" stroke-width="10.24">
+        <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"></path>
+      </g>
+      <g id="SVGRepo_iconCarrier">
+        <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"></path>
+      </g>
+    </svg>`;
 };

@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Tooltip from '@mui/material/Tooltip';
 
-function VisibilityIconComp({ map }) {
+function VisibilityIconComp({ map, onClickHandler }) {
   const [isVisible, setIsVisible] = useState(true);
   let rasterLayersCurrentVisibility = useRef(); // key[string(layer-id)]: string(previous visibility status)
 
@@ -26,7 +26,7 @@ function VisibilityIconComp({ map }) {
       });
     } else {
       // toggle to visible
-      // restore the previous visibility state
+      // restore the previous visibility stateonClickHandler && onClickHandler(true);
       Object.keys(rasterLayersCurrentVisibility.current).forEach((layerId) => {
         map.setLayoutProperty(
           layerId,
@@ -35,6 +35,7 @@ function VisibilityIconComp({ map }) {
         );
       });
     }
+    onClickHandler && onClickHandler(!isVisible);
     setIsVisible(!isVisible);
   };
 
@@ -52,7 +53,8 @@ function VisibilityIconComp({ map }) {
 }
 
 export class LayerVisibilityControl {
-  constructor() {
+  constructor(onHideLayerClick) {
+    this._onClick = onHideLayerClick;
     this.root = null;
     this._map = null;
   }
@@ -62,7 +64,9 @@ export class LayerVisibilityControl {
     this._container = document.createElement('div');
     this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
     const root = ReactDOM.createRoot(this._container);
-    root.render(<VisibilityIconComp map={this._map} />);
+    root.render(
+      <VisibilityIconComp map={this._map} onClickHandler={this._onClick} />
+    );
     this.root = root;
     return this._container;
   };

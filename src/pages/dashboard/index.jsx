@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 
 import {
   MainMap,
   MarkerFeature,
-  VisualizationLayers,
   ColorBar,
   LoadingSpinner,
   PersistentDrawerRight,
@@ -16,6 +15,8 @@ import {
   FilterByDate,
   CoverageLayers,
   MapViewPortComponent,
+  VisualizationLayers,
+  FillLayers,
 } from '@components';
 
 import styled from 'styled-components';
@@ -52,15 +53,13 @@ export function Dashboard({
   const [vizItems, setVizItems] = useState([]); // store all available visualization items
   const [selectedRegionId, setSelectedRegionId] = useState(''); // region_id of the selected region (marker)
   const prevSelectedRegionId = useRef(''); // to be able to restore to previously selected region.
-  const [selectedVizItems, setSelectedVizItems] = useState([]); // all visualization items for the selected region (marker)
+  const [clickedOnLayer, setClickedOnLayer] = useState([]); // all visualization items for the selected region (marker)
   const [hoveredVizLayerId, setHoveredVizLayerId] = useState(''); // vizItem_id of the visualization item which was hovered over
   const [filteredVizItems, setFilteredVizItems] = useState([]); // visualization items for the selected region with the filter applied
   const [coverageFeatures, setCoverageFeatures] = useState([]);
-  const [vizItemIds, setVizItemIds] = useState([]); // list of vizItem_ids for the search feature.
   const [vizItemsForAnimation, setVizItemsForAnimation] = useState([]); // list of subdaily_visualization_item used for animation
-
-  const [showVisualizationLayers, setShowVisualizationLayers] = useState(true);
-  const [visualizationLayers, setVisualizationLayers] = useState(true);
+  const [visualizationLayers, setVisualizationLayers] = useState([]);
+  const [currentLayersInViewPort, setCurrentLayersInViewPort] = useState([]);
   const [showCoverage, setShowCoverages] = useState(false);
   const [enableToggle, setEnableToggle] = useState(false);
 
@@ -74,37 +73,35 @@ export function Dashboard({
   const [VMIN, setVMIN] = useState(-92);
   const [colormap, setColormap] = useState('plasma');
   const [assets, setAssets] = useState('ch4-plume-emissions');
-  //states for data
 
   // handler functions
   const handleSelectedVizItem = (vizItemId) => {
+    console.log({ Clicked: vizItemId });
     if (!vizItemId) return;
-    setShowVisualizationLayers(true);
     const vizItem = filteredVizItems[vizItemId];
-    // console.log({ vizItem });
     const location = vizItem?.geometry?.coordinates[0][0];
     setVisualizationLayers([vizItem]);
     setZoomLocation(location);
     setZoomLevel(12); // take the default zoom level
+    setCurrentLayersInViewPort([vizItem]);
     setOpenDrawer(true);
-    setSelectedVizItems([]); // reset the visualization items shown, to trigger re-evaluation of selected visualization item
+    setClickedOnLayer([]); // reset the visualization items shown, to trigger re-evaluation of selected visualization item
   };
 
-  const handleSelectedVizLayer = (vizLayerId) => {
+  const handleClickedVizLayer = (vizLayerId) => {
     if (!vizItems || !vizLayerId) return;
     // console.log({ vizLayerId });
+    setClickedOnLayer([vizLayerId]);
   };
 
   const handleSelectedVizItemSearch = (vizItemId) => {
     if (!vizItems || !vizItemId) return;
-    setShowVisualizationLayers(true);
     const vizItem = filteredVizItems[vizItemId];
     const location = vizItem?.geometry?.coordinates[0][0];
     setVisualizationLayers([vizItem]);
     setZoomLocation(location);
     setZoomLevel(12); // take the default zoom level
     setOpenDrawer(true);
-    setSelectedVizItems([]);
   };
 
   const handleResetHome = () => {
@@ -113,12 +110,9 @@ export function Dashboard({
     setZoomLocation([-98.771556, 32.967243]);
   };
 
-  const handleHoveredVizLayer = (vizItemId) => {
-    // console.log({ HoveredItemDashboard: vizItemId });
-    // if (!map) return;
-    // console.log({ layers: map.getStyle().layers });
+  const handleHoveredVizLayer = useCallback((vizItemId) => {
     setHoveredVizLayerId(vizItemId);
-  };
+  }, []);
 
   const handleFilterVizItems = (result) => {
     const newItems = {};
@@ -152,12 +146,19 @@ export function Dashboard({
   }, [collectionMeta]);
 
   const handleDateRangeChange = (dateRange) => {
+    if (!coverage) return;
     const filteredCoverages = filterByDateRange(coverage, dateRange);
     setCoverageFeatures(filteredCoverages);
   };
 
   const handleCoverageToggle = (switchState) => {
     setShowCoverages(switchState);
+  };
+
+  const handleHideLayers = (val) => {
+    if (!val) {
+      setShowCoverages(val);
+    }
   };
 
   return (
@@ -186,6 +187,7 @@ export function Dashboard({
                 <ToggleSwitch
                   title={'Show EMIT Coverages'}
                   onToggle={handleCoverageToggle}
+                  initialState={showCoverage}
                   enabled={enableToggle}
                 />
               </HorizontalLayout>
@@ -196,11 +198,17 @@ export function Dashboard({
             openDrawer={openDrawer}
             setOpenDrawer={setOpenDrawer}
             handleResetHome={handleResetHome}
+            handleHideLayers={handleHideLayers}
           />
           <MapViewPortComponent
             filteredVizItems={filteredVizItems}
             setVisualizationLayers={setVisualizationLayers}
+            setCurrentLayersInViewPort={setCurrentLayersInViewPort}
+            setZoomLevel={setZoomLevel}
             setOpenDrawer={setOpenDrawer}
+            highlightedLayer={hoveredVizLayerId}
+            setZoomLocation={setZoomLocation}
+            clickedOnLayer={clickedOnLayer}
           ></MapViewPortComponent>
           <MarkerFeature
             getPopupContent={getPopupContent}
@@ -216,20 +224,25 @@ export function Dashboard({
             VMAX={VMAX}
             colormap={colormap}
             assets={assets}
+          />
+          <FillLayers
+            vizItems={currentLayersInViewPort}
             highlightedLayer={hoveredVizLayerId}
-            onClickOnLayer={handleSelectedVizLayer}
+            onClickOnLayer={handleClickedVizLayer}
             onHoverOverLayer={handleHoveredVizLayer}
           />
         </MainMap>
+        (
         <PersistentDrawerRight
           open={openDrawer}
           setOpen={setOpenDrawer}
-          selectedVizItems={visualizationLayers}
+          selectedVizItems={currentLayersInViewPort}
           hoveredVizLayerId={hoveredVizLayerId}
           collectionId={collectionId}
-          onSelectVizLayer={handleSelectedVizLayer}
+          onSelectVizLayer={handleClickedVizLayer}
           onHoverOnVizLayer={handleHoveredVizLayer}
         />
+        )
       </div>
       {VMAX && (
         <ColorBar

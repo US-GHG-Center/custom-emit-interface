@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Typography from '@mui/material/Typography';
 import './index.css';
 
-const ToggleSwitch = ({ title, onToggle, enabled }) => {
+const ToggleSwitch = ({ title, onToggle, enabled, initialState }) => {
   const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(() => {
+    setIsChecked(initialState);
+  }, [initialState]);
 
   const handleToggle = () => {
     const newState = !isChecked;
@@ -14,7 +19,9 @@ const ToggleSwitch = ({ title, onToggle, enabled }) => {
 
   return (
     <div className='toggle-container'>
-      <span className='custom-label-cov'> {title}</span>
+      <Typography variant='body2' gutterBottom>
+        {title}
+      </Typography>
       <label className='toggle-switch'>
         <input
           type='checkbox'

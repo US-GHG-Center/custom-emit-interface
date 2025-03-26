@@ -1,13 +1,7 @@
 import { useEffect } from 'react';
 import { useMapbox } from '../../../context/mapContext';
-import {
-  addSourceLayerToMap,
-  getSourceId,
-  getLayerId,
-  layerExists,
-  sourceExists,
-} from '../utils';
-import { addSourcePolygonToMap, addFillPolygonToMap } from '../utils/index';
+import { addSourceLayerToMap, getSourceId, getLayerId } from '../utils';
+import { addSourcePolygonToMap } from '../utils/index';
 
 // eslint-disable-next-line prettier/prettier
 export const VisualizationLayer = ({
@@ -31,17 +25,11 @@ export const VisualizationLayer = ({
       properties: vizItem?.plumeProperties,
       type: 'Feature',
     };
-    let polygonBorderWidth = 2;
-    if (highlightedLayer === vizItemId) {
-      polygonBorderWidth = 4;
-    }
-    const rasterSourceId = getSourceId('raster' + vizItemId);
-    const rasterLayerId = getLayerId('raster' + vizItemId);
-    const polygonFillSourceId = getSourceId('fill' + vizItemId);
-    const polygonFillLayerId = getLayerId('fill' + vizItemId);
-    const polygonSourceId = getSourceId('polygon' + vizItemId);
-    const polygonLayerId = getLayerId('polygon' + vizItemId);
 
+    const rasterSourceId = getSourceId('raster', vizItemId);
+    const rasterLayerId = getLayerId('raster', vizItemId);
+    const polygonSourceId = getSourceId('polygon', vizItemId);
+    const polygonLayerId = getLayerId('polygon', vizItemId);
     addSourceLayerToMap(
       map,
       VMIN,
@@ -57,44 +45,10 @@ export const VisualizationLayer = ({
       polygonFeature,
       polygonSourceId,
       polygonLayerId,
-      polygonBorderWidth
+      2
     );
-    addFillPolygonToMap(map, feature, polygonFillSourceId, polygonFillLayerId);
-
-    const onClickHandler = (e) => {
-      onClickOnLayer && onClickOnLayer(vizItemId);
-    };
-
-    const onHoverHandler = (e) => {
-      onHoverOverLayer && onHoverOverLayer(vizItemId);
-    };
-    const onHoverClearHandler = (e) => {
-      onHoverOverLayer && onHoverOverLayer('');
-    };
 
     map.setLayoutProperty(rasterLayerId, 'visibility', 'visible');
-    map.on('click', polygonFillLayerId, onClickHandler);
-    map.on('mouseover', polygonFillLayerId, onHoverHandler);
-    map.on('mouseleave', polygonFillLayerId, onHoverClearHandler);
-
-    return () => {
-      // cleanups
-      if (map) {
-        if (layerExists(map, rasterLayerId)) map.removeLayer(rasterLayerId);
-        if (sourceExists(map, rasterSourceId)) map.removeSource(rasterSourceId);
-        if (layerExists(map, polygonLayerId)) map.removeLayer(polygonLayerId);
-        if (sourceExists(map, polygonSourceId))
-          map.removeSource(polygonSourceId);
-        if (layerExists(map, polygonFillLayerId))
-          map.removeLayer(polygonFillLayerId);
-        if (sourceExists(map, polygonFillSourceId))
-          map.removeSource(polygonFillSourceId);
-
-        map.off('click', polygonFillLayerId, onClickHandler);
-        map.off('mouseenter', polygonFillLayerId, onHoverHandler);
-        map.off('mouseleave', polygonFillLayerId, onHoverClearHandler);
-      }
-    };
   }, [
     vizItem,
     map,
@@ -133,23 +87,24 @@ export const VisualizationLayers = ({
   onClickOnLayer,
 }) => {
   const { map } = useMapbox();
-  if (!map || !vizItems.length) return;
+
+  if (!map || !vizItems || !vizItems.length) return null;
+
   return (
     <>
-      {vizItems.length &&
-        vizItems.map((vizItem) => (
-          <VisualizationLayer
-            key={vizItem.id}
-            vizItem={vizItem}
-            highlightedLayer={highlightedLayer}
-            onClickOnLayer={onClickOnLayer}
-            onHoverOverLayer={onHoverOverLayer}
-            VMIN={VMIN}
-            VMAX={VMAX}
-            colormap={colormap}
-            assets={assets}
-          />
-        ))}
+      {vizItems.map((vizItem) => (
+        <VisualizationLayer
+          key={vizItem.id}
+          vizItem={vizItem}
+          highlightedLayer={highlightedLayer}
+          onClickOnLayer={onClickOnLayer}
+          onHoverOverLayer={onHoverOverLayer}
+          VMIN={VMIN}
+          VMAX={VMAX}
+          colormap={colormap}
+          assets={assets}
+        />
+      ))}
     </>
   );
 };

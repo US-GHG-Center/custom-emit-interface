@@ -4,8 +4,8 @@ import * as turf from '@turf/turf';
 
       @param {string} idx   - Name/identification of source
 */
-export const getSourceId = (idx) => {
-  return 'raster-source-' + idx;
+export const getSourceId = (layer, idx) => {
+  return layer + '-' + idx;
 };
 
 /*
@@ -13,8 +13,8 @@ export const getSourceId = (idx) => {
 
       @param {string} idx    - Name/identification of layer
 */
-export const getLayerId = (idx) => {
-  return 'raster-layer-' + idx;
+export const getLayerId = (layer, idx) => {
+  return layer + '-' + idx;
 };
 
 /*

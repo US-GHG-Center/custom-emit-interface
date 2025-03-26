@@ -24,6 +24,9 @@ export { ColorBar } from './ui/colorBar';
 export { LoadingSpinner } from './ui/loading';
 export { Title } from './ui/title';
 
+
+export { FillLayers } from './map/fillLayer';
+
 // Utils
 export {
   getSourceId,
@@ -33,4 +36,3 @@ export {
   sourceExists,
 } from './map/utils';
 
-// Add other component exports here as needed
