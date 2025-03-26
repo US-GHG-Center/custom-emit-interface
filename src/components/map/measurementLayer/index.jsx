@@ -86,6 +86,7 @@ export const MeasurementLayer = ({
   }, [map, measurePoints, mapScaleUnit]);
 
   useEffect(() => {
+    if (!map || !map.isStyleLoaded()) return;
     if (map) {
       changeCursor(map, measurePoints, measureMode);
       if (measureMode) {

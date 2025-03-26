@@ -1,60 +1,182 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMapbox } from '../../../context/mapContext';
-import { isFeatureWithinBounds } from '../utils/index';
+import { isFeatureWithinBounds, getLayerId, getSourceId } from '../utils/index';
+
 export function MapViewPortComponent({
   filteredVizItems,
   setVisualizationLayers,
+  setCurrentLayersInViewPort,
+  setZoomLevel,
   setOpenDrawer,
+  highlightedLayer,
+  setZoomLocation,
+  clickedOnLayer,
 }) {
   const { map } = useMapbox();
+  const [layersToRemove, setLayersToRemove] = useState([]);
+  const [prevHighlightedLayer, setPrevHighlightedLayer] = useState('');
 
-  const renderRasterOnZoomed = (map, filteredVizItems) => {
+  const removeLayers = (layersToRemove) => {
+    layersToRemove.forEach((vizItemId) => {
+      const rasterSourceId = getSourceId('raster', vizItemId);
+      const rasterLayerId = getLayerId('raster', vizItemId);
+      const polygonSourceId = getSourceId('polygon', vizItemId);
+      const polygonLayerId = getLayerId('polygon', vizItemId);
+
+      if (map.getLayer(rasterLayerId)) map.removeLayer(rasterLayerId);
+      if (map.getLayer(polygonLayerId)) map.removeLayer(polygonLayerId);
+
+      if (map.getSource(rasterSourceId)) map.removeSource(rasterSourceId);
+      if (map.getSource(polygonSourceId)) map.removeSource(polygonSourceId);
+    });
+  };
+
+  const getRasterLayersInCurrentViewPort = (map) => {
     const bounds = map.getBounds();
     const itemsInsideZoomedRegion = Object.values(filteredVizItems)?.filter(
       (value) => isFeatureWithinBounds(value?.polygonGeometry, bounds)
     );
-    if (itemsInsideZoomedRegion.length > 0) {
-      setVisualizationLayers(itemsInsideZoomedRegion);
-      setOpenDrawer(true);
-    } else {
-      setVisualizationLayers([]);
-    }
+    // Get IDs of items currently in view
+    const newLayerIds = new Set(itemsInsideZoomedRegion.map((item) => item.id));
+    const currentLayersOnMap = map.getStyle()?.layers || [];
+
+    const currentRasterLayersOnMap = currentLayersOnMap.filter((item) =>
+      item?.id?.includes('raster-')
+    );
+    const currentLayerIds = new Set(
+      currentRasterLayersOnMap.map((obj) => obj['id']?.split('-')[1])
+    );
+    return { newLayerIds, currentLayerIds, itemsInsideZoomedRegion };
   };
-  useEffect(() => {
-    if (!map) return;
-    const handleZoom = () => {
-      const zoom = map.getZoom();
-      if (zoom > 8) {
-        renderRasterOnZoomed(map, filteredVizItems);
+
+  const updateVisibleLayers = (map, filteredVizItems) => {
+    if (!map || !filteredVizItems || !map.isStyleLoaded()) return;
+
+    try {
+      const { newLayerIds, currentLayerIds, itemsInsideZoomedRegion } =
+        getRasterLayersInCurrentViewPort(map);
+
+      // Find layers to add (in new but not in current)
+      const layersToAdd = itemsInsideZoomedRegion.filter(
+        (item) => !currentLayerIds.has(item.id)
+      );
+
+      // Find layers to remove (in current but not in new)
+      const layersToRemove = [...currentLayerIds].filter(
+        (id) => !newLayerIds.has(id)
+      );
+
+      // const remainingLayers = [...currentLayerIds].filter(
+      //   (id) => !layersToRemove.has(id)
+      // );
+      // Only update if there are changes
+
+      if (itemsInsideZoomedRegion?.length > 0) {
+        setCurrentLayersInViewPort(itemsInsideZoomedRegion);
+        // setOpenDrawer(true);
+      } else {
+        setCurrentLayersInViewPort([]);
+        setOpenDrawer(false);
+      }
+      if (layersToAdd?.length > 0) {
+        setVisualizationLayers(layersToAdd);
+        // setOpenDrawer(true);
       } else {
         setVisualizationLayers([]);
       }
-    };
-    // const handleMouseMove = () => {
-    //   const layers = map.getStyle().layers;
-    //   console.log({ layers });
-    // };
-    map.on('zoomend', handleZoom);
-    map.on('dragend', handleZoom);
+      if (layersToRemove.length > 0) {
+        setLayersToRemove(layersToRemove);
+      } else {
+        setLayersToRemove([]);
+      }
+    } catch (error) {
+      console.warn('Error updating visible layers:', error);
+    }
+  };
 
-    // map.on('mousemove', handleMouseMove);
+  useEffect(() => {
+    if (highlightedLayer !== '') {
+      const polygonId = getLayerId('polygon', highlightedLayer);
+      const rasterId = getLayerId('raster', highlightedLayer);
+      if (map.getLayer(polygonId))
+        map.setPaintProperty(polygonId, 'line-width', 5);
+      if (map.getLayer(rasterId)) map.moveLayer(rasterId, polygonId);
+      setPrevHighlightedLayer(highlightedLayer);
+    } else {
+      if (prevHighlightedLayer !== '') {
+        const polygonId = getLayerId('polygon', prevHighlightedLayer);
+        if (map.getLayer(polygonId))
+          map.setPaintProperty(polygonId, 'line-width', 2);
+        setPrevHighlightedLayer('');
+      }
+    }
+  }, [highlightedLayer]);
+
+  useEffect(() => {
+    if (clickedOnLayer !== '') {
+      const rasterId = getLayerId('raster', highlightedLayer);
+      if (map?.getLayer(rasterId)) {
+        const visibility = map.getLayoutProperty(
+          rasterId,
+          'visibility',
+          'none'
+        );
+        if (visibility === 'none') {
+          map.setLayoutProperty(rasterId, 'visibility', 'visible');
+        } else if (visibility === 'visible') {
+          map.setLayoutProperty(rasterId, 'visibility', 'none');
+        }
+      }
+    }
+  }, [clickedOnLayer]);
+
+  const cleanMap = (zoom) => {
+    setCurrentLayersInViewPort([]);
+    setVisualizationLayers([]);
+    const { currentLayerIds } = getRasterLayersInCurrentViewPort(map);
+    removeLayers(currentLayerIds);
+    setZoomLevel(zoom);
+    setZoomLocation([]);
+    setOpenDrawer(false);
+  };
+  useEffect(() => {
+    if (!map || !map.isStyleLoaded()) return;
+
+    const handleViewportChange = () => {
+      const zoom = map.getZoom();
+      if (zoom >= 8) {
+        updateVisibleLayers(map, filteredVizItems);
+      } else {
+        cleanMap(zoom);
+      }
+    };
+    handleViewportChange();
+  }, [filteredVizItems]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const handleViewportChange = () => {
+      const zoom = map.getZoom();
+      if (zoom >= 8) {
+        updateVisibleLayers(map, filteredVizItems);
+      } else {
+        cleanMap(zoom);
+      }
+    };
+
+    // Wait for style to load before adding listeners
+    map.on('moveend', handleViewportChange);
 
     return () => {
-      map.off('zoomend', handleZoom);
-      map.off('dragend', handleZoom);
-      // map.off('mousemove', handleMouseMove);
+      map.off('moveend', handleViewportChange);
     };
   }, [map, filteredVizItems]);
 
   useEffect(() => {
-    if (!map) return;
-    const zoom = map.getZoom();
-    // console.log('Here i am', zoom);
-    if (zoom > 8 && !!filteredVizItems) {
-      renderRasterOnZoomed(map, filteredVizItems);
-    }
-  }, [map, filteredVizItems]);
+    if (!map || layersToRemove.length === 0 || !map.isStyleLoaded()) return;
+    removeLayers(layersToRemove);
+  }, [map, layersToRemove]);
 
-  //
-  return <div>index</div>;
+  return null;
 }
