@@ -34,14 +34,11 @@ export function FilterByDate({ vizItems, onFilteredItems, onDateChange }) {
     >
       <Typography
         gutterBottom
+        variant='body2'
         sx={{
           marginBottom: '0px',
-          color: '#082A63',
           display: 'flex',
           justifyContent: 'center',
-          fontWeight: 550,
-          fontSize: '16px',
-          fontFamily: 'inherit',
         }}
       >
         {moment(dateRange[0]).format('ddd, DD MMM YYYY')} -{' '}
@@ -95,28 +92,23 @@ export function FilterByDate({ vizItems, onFilteredItems, onDateChange }) {
         >
           <Typography
             gutterBottom
+            variant='body2'
             sx={{
               marginBottom: '0px',
-              color: '#082A63',
               display: 'flex',
               justifyContent: 'center',
-              fontWeight: 550,
-              fontSize: '14px',
-              fontFamily: 'inherit',
             }}
           >
             Start Date
           </Typography>
           <Typography
             gutterBottom
+            variant='body2'
             sx={{
               marginBottom: '0px',
-              color: '#082A63',
+
               display: 'flex',
               justifyContent: 'center',
-              fontWeight: 550,
-              fontSize: '14px',
-              fontFamily: 'inherit',
             }}
           >
             End Date
