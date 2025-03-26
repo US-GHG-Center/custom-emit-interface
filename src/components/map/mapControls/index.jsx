@@ -27,6 +27,7 @@ const DefaultMapControls = ({
   handleResetHome,
   handleResetToSelectedRegion,
   openDrawer,
+  handleHideLayers,
 }) => {
   const { map } = useMapbox();
   const customControlContainer = useRef();
@@ -38,7 +39,7 @@ const DefaultMapControls = ({
     const mapboxNavigation = new mapboxgl.NavigationControl({
       showCompass: false,
     });
-    const layerVisibilityControl = new LayerVisibilityControl();
+    const layerVisibilityControl = new LayerVisibilityControl(handleHideLayers);
     const homeControl = new HomeControl(handleResetHome);
     const restoreControl = new RestoreControl(handleResetToSelectedRegion);
 
@@ -165,6 +166,7 @@ export const MapControls = ({
   setOpenDrawer,
   handleResetHome,
   handleResetToSelectedRegion,
+  handleHideLayers,
 }) => {
   const [measureMode, setMeasureMode] = useState(false);
   const [clearMeasurementIcon, setClearMeasurementIcon] = useState(false);
@@ -189,6 +191,7 @@ export const MapControls = ({
         setMapScaleUnit={setMapScaleUnit}
         handleResetHome={handleResetHome}
         handleResetToSelectedRegion={handleResetToSelectedRegion}
+        handleHideLayers={handleHideLayers}
       />
       <MeasurementLayer
         measureMode={measureMode}
