@@ -51,19 +51,14 @@ export function Dashboard({
 }) {
   // states for data
   const [vizItems, setVizItems] = useState([]); // store all available visualization items
-  const [selectedRegionId, setSelectedRegionId] = useState(''); // region_id of the selected region (marker)
-  const prevSelectedRegionId = useRef(''); // to be able to restore to previously selected region.
   const [clickedOnLayer, setClickedOnLayer] = useState([]); // all visualization items for the selected region (marker)
   const [hoveredVizLayerId, setHoveredVizLayerId] = useState(''); // vizItem_id of the visualization item which was hovered over
   const [filteredVizItems, setFilteredVizItems] = useState([]); // visualization items for the selected region with the filter applied
   const [coverageFeatures, setCoverageFeatures] = useState([]);
-  const [vizItemsForAnimation, setVizItemsForAnimation] = useState([]); // list of subdaily_visualization_item used for animation
   const [visualizationLayers, setVisualizationLayers] = useState([]);
   const [currentLayersInViewPort, setCurrentLayersInViewPort] = useState([]);
   const [showCoverage, setShowCoverages] = useState(false);
   const [enableToggle, setEnableToggle] = useState(false);
-
-  // console.log('Rerendering dashboard');
 
   // states for components/controls
   const [openDrawer, setOpenDrawer] = useState(false);

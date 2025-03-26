@@ -40,19 +40,19 @@ export function DashboardContainer() {
         setCollectionMeta(collectionMetadata);
         // console.log({ coverage });
 
-        // const metaDataEndpoint = `${process.env.REACT_APP_METADATA_ENDPOINT}`;
-        // const stacAPIEndpoint = `${process.env.REACT_APP_STAC_API_URL}`;
+        const metaDataEndpoint = `${process.env.REACT_APP_METADATA_ENDPOINT}`;
+        const stacAPIEndpoint = `${process.env.REACT_APP_STAC_API_URL}`;
         // get all the metadata items
-        // const metadata = await fetchData(metaDataEndpoint);
+        const metadata = await fetchData(metaDataEndpoint);
         // get all the stac Items
-        // const stacData = await fetchAllFromSTACAPI(stacAPIEndpoint);
+        const stacData = await fetchAllFromSTACAPI(stacAPIEndpoint);
 
         // console.log({ metadata, stacData });
         // transform the data
-        // const { data } = await transformMetadata(metadata, stacData);
+        const { data } = await transformMetadata(metadata, stacData);
         // console.log({ data });
-        // setPlumes(data);
-        setPlumes(Plumes);
+        setPlumes(data);
+        // setPlumes(Plumes);
         // remove loading
         setLoadingData(false);
       } catch (error) {
