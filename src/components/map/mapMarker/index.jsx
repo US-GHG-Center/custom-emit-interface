@@ -10,43 +10,81 @@ import './index.css';
 */
 
 // eslint-disable-next-line prettier/prettier
-export const MarkerFeature = ({ vizItems, onSelectVizItem }) => {
+export const MarkerFeature = ({
+  vizItems,
+  onSelectVizItem,
+  getPopupContent,
+}) => {
   const { map } = useMapbox();
   const [markersVisible, setMarkersVisible] = useState(true);
+  const [activePopup, setActivePopup] = useState(null);
+
   useEffect(() => {
     if (!map || !vizItems.length) return;
 
+    const getPopup = (vizItem) => {
+      const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+      }).setHTML(getPopupContent(vizItem));
+      return popup;
+    };
+
     const plottedMarkers = vizItems.map((item) => {
-      const { lon, lat } = item
+      const { lon, lat } = item;
       const marker = addMarker(map, lon, lat);
+      const handleClick = () => onSelectVizItem && onSelectVizItem(item.id);
+      let popup = null;
+
+      const handleMouseEnter = () => {
+        if (getPopupContent) {
+          if (!popup) {
+            popup = getPopup(item);
+          }
+          marker.setPopup(popup);
+          popup.addTo(map);
+          setActivePopup(popup);
+        }
+      };
+
+      const handleMouseLeave = () => {
+        if (popup && getPopupContent) {
+          popup.remove();
+          setActivePopup(null);
+        }
+      };
       const mel = marker.getElement();
-      mel.addEventListener('click', (e) => {
-        onSelectVizItem && onSelectVizItem(item.id);
-      });
+      mel.addEventListener('click', handleClick);
+      mel.addEventListener('mouseenter', handleMouseEnter);
+      mel.addEventListener('mouseleave', handleMouseLeave);
+
       mel.style.display = markersVisible ? 'block' : 'none';
-      return mel;
+      return { mel, handleClick, handleMouseLeave, handleMouseEnter, popup };
     });
 
-    // clean-ups
+    // clean-upss
     return () => {
-      plottedMarkers.forEach((marker) => {
-        marker.parentNode.removeChild(marker);
-      });
+      plottedMarkers.forEach(
+        ({ mel, handleClick, handleMouseLeave, handleMouseEnter, popup }) => {
+          mel.removeEventListener('click', handleClick);
+          mel.removeEventListener('mouseenter', handleMouseEnter);
+          mel.removeEventListener('mouseleave', handleMouseLeave);
+          mel.parentNode.removeChild(mel);
+          if (popup) popup.remove();
+        }
+      );
+      if (activePopup) activePopup.remove();
     };
   }, [vizItems, map, onSelectVizItem, markersVisible]);
 
   useEffect(() => {
     if (!map) return;
-
     const threshold = 8;
-    map.on('zoom', () => {
-      const currentZoom = map.getZoom();
-      if (currentZoom <= threshold) {
-        setMarkersVisible(true);
-      } else {
-        setMarkersVisible(false);
-      }
-    });
+    const updateMarkersVisibility = () =>
+      setMarkersVisible(map.getZoom() <= threshold);
+
+    map.on('zoom', updateMarkersVisibility);
+    return () => map.off('zoom', updateMarkersVisibility);
   }, [map]);
 
   return null;

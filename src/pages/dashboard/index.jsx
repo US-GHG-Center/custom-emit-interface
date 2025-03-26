@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 
@@ -22,7 +22,7 @@ import styled from 'styled-components';
 
 import './index.css';
 import ToggleSwitch from '../../components/ui/toggle';
-import { filterByDateRange } from './helper';
+import { filterByDateRange, getPopupContent } from './helper';
 
 const TITLE = 'EMIT Methane Plume Viewer';
 const DESCRIPTION =
@@ -203,6 +203,7 @@ export function Dashboard({
             setOpenDrawer={setOpenDrawer}
           ></MapViewPortComponent>
           <MarkerFeature
+            getPopupContent={getPopupContent}
             vizItems={Object.keys(filteredVizItems).map(
               (item) => filteredVizItems[item]
             )}

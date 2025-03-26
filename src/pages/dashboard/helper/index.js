@@ -1,5 +1,4 @@
 // Data structure: Keep features array and add date-based index
-
 // Binary search to find index of first element >= minDate
 function findLowerBound(arr, minDate) {
   const minDateObj = new Date(minDate);
@@ -68,5 +67,17 @@ export function filterByDateRange(indexedData, dateRange) {
     features: filteredFeatures,
   };
 }
+
+export const getPopupContent = (vizItem) => {
+  const { plumeProperties } = vizItem;
+  const { location, utcTimeObserved, plumeId } = plumeProperties;
+  return `
+        <table style="line-height: 1.4; font-size: 11px;">
+            <tr><td><strong>ID:</strong></td><td>${plumeId}</td></tr>
+            <tr><td><strong>Location:</strong></td><td>${location}</td></tr>
+            <tr><td><strong>Date:</strong></td><td>${utcTimeObserved}</td></tr>
+        </table>
+    `;
+};
 
 // Usage example
