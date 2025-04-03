@@ -1,14 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMapbox } from '../../../context/mapContext';
 import './index.css';
 
-/*
-  Add marker on map
-  @param {STACItem} vizItems   - An array of stac items which are to be rendered as markers
-  @param {function} onSelectVizItem  - function to execute when the marker is clicked. will provide vizItemId as a parameter to the callback
-  @param {function} [getPopupContent]  - Optional function to generate popup content for markers
-*/
 export const MarkerFeature = ({
   vizItems,
   onSelectVizItem,
@@ -16,124 +10,92 @@ export const MarkerFeature = ({
 }) => {
   const { map } = useMapbox();
   const [markersVisible, setMarkersVisible] = useState(true);
-  const [activePopup, setActivePopup] = useState(null);
-
-  // Use ref to track markers for proper cleanup
   const markersRef = useRef([]);
 
-  // Memoize marker creation to prevent unnecessary re-renders
+  // Memoized marker creation function
   const createMarker = useCallback(
     (item) => {
       const { lon, lat, id } = item;
+      const markerColor = '#00b7eb';
+
+      // Create marker element
       const el = document.createElement('div');
       el.className = 'marker';
-      const markerColor = '#00b7eb';
       el.innerHTML = getMarkerSVG(markerColor);
 
-      const marker = new mapboxgl.Marker(el).setLngLat([lon, lat]).addTo(map);
-      const markerElement = marker.getElement();
+      // Create Mapbox marker
+      const marker = new mapboxgl.Marker({
+        element: el,
+        anchor: 'top',
+      }).setLngLat([lon, lat]);
 
-      const handleClick = (e) => {
-        // e.stopPropagation();
-        onSelectVizItem && onSelectVizItem(id);
-      };
+      // Create popup if content provided
+      const popup = getPopupContent
+        ? new mapboxgl.Popup({
+            offset: 5,
+            closeButton: false,
+            closeOnClick: false,
+          }).setHTML(getPopupContent(item))
+        : undefined;
 
-      markerElement.addEventListener('click', handleClick);
-
-      let popup = null;
+      // Event handlers
       const handleMouseEnter = () => {
-        if (getPopupContent) {
-          if (!popup) {
-            popup = new mapboxgl.Popup({
-              closeButton: false,
-              closeOnClick: false,
-            }).setHTML(getPopupContent(item));
-          }
-          marker.setPopup(popup);
-          popup.addTo(map);
-          setActivePopup(popup);
+        if (popup) {
+          marker.setPopup(popup).togglePopup();
         }
       };
 
       const handleMouseLeave = () => {
-        if (popup && getPopupContent) {
+        if (popup) {
           popup.remove();
-          setActivePopup(null);
         }
       };
 
-      markerElement.addEventListener('mouseenter', handleMouseEnter);
-      markerElement.addEventListener('mouseleave', handleMouseLeave);
-
-      return {
-        marker,
-        element: markerElement,
-        clickHandler: handleClick,
-        mouseEnterHandler: handleMouseEnter,
-        mouseLeaveHandler: handleMouseLeave,
-        popup,
-        id,
+      const handleClick = (e) => {
+        e.stopPropagation();
+        onSelectVizItem && onSelectVizItem(id);
       };
+
+      // Add event listeners
+      el.addEventListener('mouseenter', handleMouseEnter);
+      el.addEventListener('mouseleave', handleMouseLeave);
+      el.addEventListener('click', handleClick);
+
+      return { marker, element: el, popup, id };
     },
     [map, onSelectVizItem, getPopupContent]
   );
 
-  // Main markers effect
+  // Markers management effect
   useEffect(() => {
     if (!map || !vizItems.length) return;
 
-    // Create new markers
-    const newMarkers = vizItems.map(createMarker);
+    // Clean up existing markers
+    markersRef.current.forEach(({ marker, element, popup }) => {
+      element.remove();
+      marker.remove();
+      popup?.remove();
+    });
 
-    // Update visibility
+    // Create and add new markers
+    const newMarkers = vizItems.map(createMarker);
+    newMarkers.forEach(({ marker }) => marker.addTo(map));
+
+    // Update markers visibility and ref
     newMarkers.forEach(({ element }) => {
       element.style.display = markersVisible ? 'block' : 'none';
     });
-
-    // Cleanup previous markers
-    markersRef.current.forEach(
-      ({
-        marker,
-        element,
-        mouseEnterHandler,
-        clickHandler,
-        mouseLeaveHandler,
-        popup,
-      }) => {
-        // Remove previous event listeners
-        element.removeEventListener('mouseenter', mouseEnterHandler);
-        element.removeEventListener('mouseleave', mouseLeaveHandler);
-        element.removeEventListener('click', clickHandler);
-        marker.remove();
-        if (popup) popup.remove();
-      }
-    );
-
-    // Update markers ref
     markersRef.current = newMarkers;
 
     // Cleanup function
     return () => {
-      newMarkers.forEach(
-        ({
-          marker,
-          element,
-          mouseEnterHandler,
-          clickHandler,
-          mouseLeaveHandler,
-          popup,
-        }) => {
-          element.removeEventListener('mouseenter', mouseEnterHandler);
-          element.removeEventListener('mouseleave', mouseLeaveHandler);
-          element.removeEventListener('click', clickHandler);
-          marker.remove();
-          if (popup) popup.remove();
-        }
-      );
-      markersRef.current = [];
-      if (activePopup) activePopup.remove();
+      newMarkers.forEach(({ marker, element, popup }) => {
+        element.remove();
+        marker.remove();
+        popup?.remove();
+      });
     };
-  }, [vizItems, map, createMarker, markersVisible, activePopup]);
+  }, [vizItems, map, createMarker, markersVisible]);
 
   // Zoom-based visibility effect
   useEffect(() => {
@@ -141,14 +103,10 @@ export const MarkerFeature = ({
 
     const handleZoom = () => {
       const currentZoom = map.getZoom();
-      const threshold = 8;
-      setMarkersVisible(currentZoom <= threshold);
+      setMarkersVisible(currentZoom <= 9);
     };
 
-    // Add zoom event listener
     map.on('zoom', handleZoom);
-
-    // Cleanup zoom event listener
     return () => {
       map.off('zoom', handleZoom);
     };
@@ -157,7 +115,6 @@ export const MarkerFeature = ({
   return null;
 };
 
-// Marker SVG generation function
 const getMarkerSVG = (color, strokeColor = '#000000') => {
   return `
     <svg fill="${color}" width="30px" height="30px" viewBox="-51.2 -51.2 614.40 614.40" xmlns="http://www.w3.org/2000/svg">
@@ -170,3 +127,5 @@ const getMarkerSVG = (color, strokeColor = '#000000') => {
       </g>
     </svg>`;
 };
+
+export default MarkerFeature;
