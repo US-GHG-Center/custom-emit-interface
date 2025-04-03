@@ -59,6 +59,7 @@ export function Dashboard({
   const [currentLayersInViewPort, setCurrentLayersInViewPort] = useState([]);
   const [showCoverage, setShowCoverages] = useState(false);
   const [enableToggle, setEnableToggle] = useState(false);
+  const [hideLayers, setHideLayers] = useState(false);
 
   // states for components/controls
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -71,7 +72,7 @@ export function Dashboard({
 
   // handler functions
   const handleSelectedVizItem = (vizItemId) => {
-    console.log({ Clicked: vizItemId });
+    // console.log({ Clicked: vizItemId });
     if (!vizItemId) return;
     const vizItem = filteredVizItems[vizItemId];
     const location = vizItem?.geometry?.coordinates[0][0];
@@ -92,10 +93,12 @@ export function Dashboard({
   const handleSelectedVizItemSearch = (vizItemId) => {
     if (!vizItems || !vizItemId) return;
     const vizItem = filteredVizItems[vizItemId];
+    // console.log({ vizItem });
     const location = vizItem?.geometry?.coordinates[0][0];
     setVisualizationLayers([vizItem]);
     setZoomLocation(location);
     setZoomLevel(12); // take the default zoom level
+    setCurrentLayersInViewPort([vizItem]);
     setOpenDrawer(true);
   };
 
@@ -151,6 +154,7 @@ export function Dashboard({
   };
 
   const handleHideLayers = (val) => {
+    setHideLayers(val);
     if (!val) {
       setShowCoverages(val);
     }
@@ -200,10 +204,10 @@ export function Dashboard({
             setVisualizationLayers={setVisualizationLayers}
             setCurrentLayersInViewPort={setCurrentLayersInViewPort}
             setZoomLevel={setZoomLevel}
-            setOpenDrawer={setOpenDrawer}
-            highlightedLayer={hoveredVizLayerId}
+            setOpenDrawer={setOpenDrawer}            highlightedLayer={hoveredVizLayerId}
             setZoomLocation={setZoomLocation}
             clickedOnLayer={clickedOnLayer}
+            hideLayers={hideLayers}
           ></MapViewPortComponent>
           <MarkerFeature
             getPopupContent={getPopupContent}
