@@ -11,6 +11,7 @@ export function MapViewPortComponent({
   highlightedLayer,
   setZoomLocation,
   clickedOnLayer,
+  hideLayers,
 }) {
   const { map } = useMapbox();
   const [layersToRemove, setLayersToRemove] = useState([]);
@@ -19,15 +20,19 @@ export function MapViewPortComponent({
   const removeLayers = (layersToRemove) => {
     layersToRemove.forEach((vizItemId) => {
       const rasterSourceId = getSourceId('raster', vizItemId);
+      const fillSourceId = getSourceId('fill', vizItemId);
+      const fillLayerId = getLayerId('fill', vizItemId);
       const rasterLayerId = getLayerId('raster', vizItemId);
       const polygonSourceId = getSourceId('polygon', vizItemId);
       const polygonLayerId = getLayerId('polygon', vizItemId);
 
       if (map.getLayer(rasterLayerId)) map.removeLayer(rasterLayerId);
       if (map.getLayer(polygonLayerId)) map.removeLayer(polygonLayerId);
+      if (map.getLayer(fillLayerId)) map.removeLayer(fillLayerId);
 
       if (map.getSource(rasterSourceId)) map.removeSource(rasterSourceId);
       if (map.getSource(polygonSourceId)) map.removeSource(polygonSourceId);
+      if (map.getSource(fillSourceId)) map.removeSource(fillSourceId);
     });
   };
 
@@ -55,7 +60,7 @@ export function MapViewPortComponent({
     try {
       const { newLayerIds, currentLayerIds, itemsInsideZoomedRegion } =
         getRasterLayersInCurrentViewPort(map);
-
+      // console.log({ currentLayerIds, itemsInsideZoomedRegion });
       // Find layers to add (in new but not in current)
       const layersToAdd = itemsInsideZoomedRegion.filter(
         (item) => !currentLayerIds.has(item.id)
@@ -78,17 +83,25 @@ export function MapViewPortComponent({
         setCurrentLayersInViewPort([]);
         setOpenDrawer(false);
       }
+      if (layersToRemove.length > 0) {
+        setLayersToRemove(layersToRemove);
+      } else {
+        setLayersToRemove([]);
+      }
       if (layersToAdd?.length > 0) {
         setVisualizationLayers(layersToAdd);
         // setOpenDrawer(true);
       } else {
         setVisualizationLayers([]);
       }
-      if (layersToRemove.length > 0) {
-        setLayersToRemove(layersToRemove);
-      } else {
-        setLayersToRemove([]);
-      }
+      const allLayers = map.getStyle()?.layers || [];
+      const finalLayers = allLayers.filter(
+        (item) =>
+          item?.id?.includes('raster-') ||
+          item?.id?.includes('fill-') ||
+          item?.id?.includes('polygon-')
+      );
+      console.log({ finalLayers });
     } catch (error) {
       console.warn('Error updating visible layers:', error);
     }
@@ -128,7 +141,7 @@ export function MapViewPortComponent({
         }
       }
     }
-  }, [clickedOnLayer]);
+  }, [clickedOnLayer, hideLayers]);
 
   const cleanMap = (zoom) => {
     setCurrentLayersInViewPort([]);
@@ -144,7 +157,7 @@ export function MapViewPortComponent({
 
     const handleViewportChange = () => {
       const zoom = map.getZoom();
-      if (zoom >= 8) {
+      if (zoom >= 9) {
         updateVisibleLayers(map, filteredVizItems);
       } else {
         cleanMap(zoom);
@@ -158,7 +171,7 @@ export function MapViewPortComponent({
 
     const handleViewportChange = () => {
       const zoom = map.getZoom();
-      if (zoom >= 8) {
+      if (zoom >= 9) {
         updateVisibleLayers(map, filteredVizItems);
       } else {
         cleanMap(zoom);
@@ -166,10 +179,12 @@ export function MapViewPortComponent({
     };
 
     // Wait for style to load before adding listeners
-    map.on('moveend', handleViewportChange);
+    map.on('zoomend', handleViewportChange);
+    map.on('dragend', handleViewportChange);
 
     return () => {
-      map.off('moveend', handleViewportChange);
+      map.off('zoomend', handleViewportChange);
+      map.off('dragend', handleViewportChange);
     };
   }, [map, filteredVizItems]);
 
