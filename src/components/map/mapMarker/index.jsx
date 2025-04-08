@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMapbox } from '../../../context/mapContext';
 import './index.css';
+import { ZOOM_LEVEL_MARGIN } from '../utils/constants';
 
 export const MarkerFeature = ({
   vizItems,
@@ -103,7 +104,7 @@ export const MarkerFeature = ({
 
     const handleZoom = () => {
       const currentZoom = map.getZoom();
-      setMarkersVisible(currentZoom <= 9);
+      setMarkersVisible(currentZoom <= ZOOM_LEVEL_MARGIN);
     };
 
     map.on('zoom', handleZoom);
