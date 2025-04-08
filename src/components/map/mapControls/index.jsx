@@ -4,7 +4,6 @@ import { useMapbox } from '../../../context/mapContext';
 import { HamburgerControl } from './hamburger';
 import { MeasureDistanceControl } from './measureDistance';
 import { ChangeUnitControl } from './changeUnit';
-import { ClearMeasurementControl } from './clearMeasurement';
 import { LayerVisibilityControl } from './layerVisibility';
 import { HomeControl } from './home';
 
@@ -20,8 +19,6 @@ const DefaultMapControls = ({
   measureMode,
   onClickHamburger,
   onClickMeasureMode,
-  onClickClearIcon,
-  clearMeasurementIcon,
   mapScaleUnit,
   setMapScaleUnit,
   handleResetHome,
@@ -108,29 +105,6 @@ const DefaultMapControls = ({
     };
   }, [map, mapScaleUnit, measureMode]);
 
-  // useEffect(() => {
-  //   if (!map) return;
-
-  //   const clearMeasurementControl = clearMeasurementIcon
-  //     ? new ClearMeasurementControl(onClickClearIcon)
-  //     : null;
-
-  //   if (clearMeasurementIcon) {
-  //     const mapboxCustomControlContainer = document.querySelector(
-  //       '#mapbox-custom-controls'
-  //     );
-  //     const clearMeasurementControlElem = clearMeasurementControl.onAdd(map);
-  //     mapboxCustomControlContainer.append(clearMeasurementControlElem);
-  //   }
-
-  //   return () => {
-  //     // clean ups
-  //     if (clearMeasurementControl && clearMeasurementIcon) {
-  //       clearMeasurementControl.onRemove();
-  //     }
-  //   };
-  // }, [map, clearMeasurementIcon, measureMode]);
-
   useEffect(() => {
     const unit = mapScaleUnit === 'km' ? 'metric' : 'imperial';
     if (!map) return;
@@ -162,7 +136,6 @@ export const MapControls = ({
   openDrawer,
   setOpenDrawer,
   handleResetHome,
-  handleResetToSelectedRegion,
   handleHideLayers,
 }) => {
   const [measureMode, setMeasureMode] = useState(false);
@@ -187,7 +160,6 @@ export const MapControls = ({
         mapScaleUnit={mapScaleUnit}
         setMapScaleUnit={setMapScaleUnit}
         handleResetHome={handleResetHome}
-        handleResetToSelectedRegion={handleResetToSelectedRegion}
         handleHideLayers={handleHideLayers}
       />
       <MeasurementLayer
