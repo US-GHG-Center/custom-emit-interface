@@ -16,7 +16,7 @@ import {
   CoverageLayers,
   MapViewPortComponent,
   VisualizationLayers,
-  FillLayers,
+  RASTER_ZOOM_LEVEL,
 } from '@components';
 
 import styled from 'styled-components';
@@ -38,6 +38,7 @@ const HorizontalLayout = styled.div`
   justify-content: space-between;
   margin: 12px;
 `;
+
 export function Dashboard({
   plumes,
   collectionMeta,
@@ -56,10 +57,10 @@ export function Dashboard({
   const [filteredVizItems, setFilteredVizItems] = useState([]); // visualization items for the selected region with the filter applied
   const [coverageFeatures, setCoverageFeatures] = useState([]);
   const [visualizationLayers, setVisualizationLayers] = useState([]);
-  const [currentLayersInViewPort, setCurrentLayersInViewPort] = useState([]);
+
   const [showCoverage, setShowCoverages] = useState(false);
   const [enableToggle, setEnableToggle] = useState(false);
-  const [hideLayers, setHideLayers] = useState(false);
+  const [fromSearch, setFromSearch] = useState(false);
 
   // states for components/controls
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -72,37 +73,43 @@ export function Dashboard({
 
   // handler functions
   const handleSelectedVizItem = (vizItemId) => {
-    // console.log({ Clicked: vizItemId });
     if (!vizItemId) return;
+    setFromSearch(false);
     const vizItem = filteredVizItems[vizItemId];
     const location = vizItem?.geometry?.coordinates[0][0];
     setVisualizationLayers([vizItem]);
     setZoomLocation(location);
-    setZoomLevel(12); // take the default zoom level
-    setCurrentLayersInViewPort([vizItem]);
+    setZoomLevel(RASTER_ZOOM_LEVEL); // take the default zoom level
     setOpenDrawer(true);
-    setClickedOnLayer([]); // reset the visualization items shown, to trigger re-evaluation of selected visualization item
   };
 
   const handleClickedVizLayer = (vizLayerId) => {
     if (!vizItems || !vizLayerId) return;
-    // console.log({ vizLayerId });
     setClickedOnLayer([vizLayerId]);
+  };
+
+  const handleZoomOutEvent = (zoom) => {
+    if (!fromSearch) {
+      setVisualizationLayers([]);
+    }
+    setZoomLevel(zoom);
+    setZoomLocation('');
   };
 
   const handleSelectedVizItemSearch = (vizItemId) => {
     if (!vizItems || !vizItemId) return;
+    setFromSearch(true);
     const vizItem = filteredVizItems[vizItemId];
-    // console.log({ vizItem });
     const location = vizItem?.geometry?.coordinates[0][0];
     setVisualizationLayers([vizItem]);
     setZoomLocation(location);
-    setZoomLevel(12); // take the default zoom level
-    setCurrentLayersInViewPort([vizItem]);
+    setZoomLevel(RASTER_ZOOM_LEVEL);
     setOpenDrawer(true);
   };
 
   const handleResetHome = () => {
+    setFromSearch(false);
+    setVisualizationLayers([]);
     setOpenDrawer(false);
     setZoomLevel(4);
     setZoomLocation([-98.771556, 32.967243]);
@@ -143,6 +150,14 @@ export function Dashboard({
     setColormap(colormap);
   }, [collectionMeta]);
 
+  useEffect(() => {
+    if (visualizationLayers?.length) {
+      setOpenDrawer(true);
+    } else {
+      setOpenDrawer(false);
+    }
+  }, [JSON.stringify(visualizationLayers)]);
+
   const handleDateRangeChange = (dateRange) => {
     if (!coverage) return;
     const filteredCoverages = filterByDateRange(coverage, dateRange);
@@ -154,7 +169,6 @@ export function Dashboard({
   };
 
   const handleHideLayers = (val) => {
-    setHideLayers(val);
     if (!val) {
       setShowCoverages(val);
     }
@@ -169,6 +183,7 @@ export function Dashboard({
             <div className='title-content'>
               <HorizontalLayout>
                 <Search
+                  setFromSearch={setFromSearch}
                   vizItems={Object.keys(filteredVizItems).map(
                     (key) => filteredVizItems[key]
                   )}
@@ -200,14 +215,10 @@ export function Dashboard({
             handleHideLayers={handleHideLayers}
           />
           <MapViewPortComponent
+            fromSearch={fromSearch}
+            handleZoomOutEvent={handleZoomOutEvent}
             filteredVizItems={filteredVizItems}
             setVisualizationLayers={setVisualizationLayers}
-            setCurrentLayersInViewPort={setCurrentLayersInViewPort}
-            setZoomLevel={setZoomLevel}
-            setOpenDrawer={setOpenDrawer}            highlightedLayer={hoveredVizLayerId}
-            setZoomLocation={setZoomLocation}
-            clickedOnLayer={clickedOnLayer}
-            hideLayers={hideLayers}
           ></MapViewPortComponent>
           <MarkerFeature
             getPopupContent={getPopupContent}
@@ -217,25 +228,23 @@ export function Dashboard({
             onSelectVizItem={handleSelectedVizItem}
           ></MarkerFeature>
           {showCoverage && <CoverageLayers coverage={coverageFeatures} />}
+          (
           <VisualizationLayers
             vizItems={visualizationLayers}
             VMIN={VMIN}
             VMAX={VMAX}
             colormap={colormap}
             assets={assets}
-          />
-          <FillLayers
-            vizItems={currentLayersInViewPort}
-            highlightedLayer={hoveredVizLayerId}
-            onClickOnLayer={handleClickedVizLayer}
             onHoverOverLayer={handleHoveredVizLayer}
+            highlightedLayer={hoveredVizLayerId}
           />
+          )
         </MainMap>
         (
         <PersistentDrawerRight
           open={openDrawer}
           setOpen={setOpenDrawer}
-          selectedVizItems={currentLayersInViewPort}
+          selectedVizItems={visualizationLayers}
           hoveredVizLayerId={hoveredVizLayerId}
           collectionId={collectionId}
           onSelectVizLayer={handleClickedVizLayer}
