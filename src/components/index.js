@@ -24,9 +24,6 @@ export { ColorBar } from './ui/colorBar';
 export { LoadingSpinner } from './ui/loading';
 export { Title } from './ui/title';
 
-
-export { FillLayers } from './map/fillLayer';
-
 // Utils
 export {
   getSourceId,
@@ -35,4 +32,4 @@ export {
   layerExists,
   sourceExists,
 } from './map/utils';
-
+export { ZOOM_LEVEL_MARGIN, RASTER_ZOOM_LEVEL } from './map/utils/constants.js';
