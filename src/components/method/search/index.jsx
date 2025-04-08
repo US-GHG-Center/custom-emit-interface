@@ -3,7 +3,6 @@ import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
-
 import { TrieSearch } from './helper/trieSearch';
 
 /*
@@ -13,7 +12,7 @@ import { TrieSearch } from './helper/trieSearch';
       @param {function} onSelectedVizItemSearch -  will provide vizItemId as a parameter to the callback when a item is clicked from dropdown 
       
 */
-export function Search({ vizItems, onSelectedVizItemSearch }) {
+export function Search({ vizItems, onSelectedVizItemSearch, setFromSearch }) {
   const ids = vizItems?.map((vizItem) => {
     const id = vizItem?.id;
     const location = vizItem?.plumeProperties?.location;
@@ -28,6 +27,7 @@ export function Search({ vizItems, onSelectedVizItemSearch }) {
 
   const trieSearch = useRef(null);
   const [searchOptions, setSearchOptions] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
 
   const handleSearch = (prefix) => {
     const searchResult = trieSearch.current.getRecommendations(prefix);
@@ -36,14 +36,22 @@ export function Search({ vizItems, onSelectedVizItemSearch }) {
 
   const handleOnInputTextChange = (event) => {
     const text = event.target.value;
+    if (text === '') {
+      setFromSearch(false);
+    }
     const searchResults = handleSearch(text);
     setSearchOptions(searchResults);
   };
 
   const handleOnOptionClicked = (event, clickedValue) => {
+    if (!clickedValue) return;
+    setSelectedOption(null); // reset to allow re-selection
+    setSelectedOption(clickedValue);
     const temp = clickedValue.split('_')[3];
     const vizItemId = temp.split('-').join('_');
+    setFromSearch(true);
     onSelectedVizItemSearch(vizItemId);
+    setSelectedOption(null);
   };
 
   useEffect(() => {
@@ -81,6 +89,7 @@ export function Search({ vizItems, onSelectedVizItemSearch }) {
         />
       )}
       onChange={handleOnOptionClicked}
+      value={selectedOption}
     />
   );
 }
