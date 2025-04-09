@@ -78,23 +78,20 @@ export const fetchLocationFromEndpoint = async (lat, lon) => {
 export const fetchAllFromSTACAPI = async (STACApiUrl) => {
   // it will fetch all collection items from all stac api.
   // do not provide offset and limits in the url
-  // console.log({ STACApiUrl });
   try {
     let requiredResult = [];
     // fetch in the collection from the stac api
     const jsonResult = await fetchData(STACApiUrl);
     if (!jsonResult) return [];
 
-    const initialResults = getResultArray(jsonResult);
-    requiredResult.push(...initialResults);
-
     // need to pull in remaining data based on the pagination information
     const { matched, returned } = jsonResult.context;
+    // if there are more data remaining fetch all
+    // API doesnot support offset so need to fetch all the data by setting the limit
     if (matched > returned) {
       let allData = await fetchAllDataSTAC(STACApiUrl, matched);
-      requiredResult = [...allData];
+      return allData;
     }
-    // console.log({ requiredResult });
     return requiredResult;
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -104,7 +101,7 @@ export const fetchAllFromSTACAPI = async (STACApiUrl) => {
 const fetchAllDataSTAC = async (STACApiUrl, numberMatched) => {
   // NOTE: STAC API doesnot accept offset as a query params. So, need to pull all the items using limit.
   try {
-    const url = addOffsetsToURL(STACApiUrl, 0, numberMatched);
+    const url = addOffsetsToURL(STACApiUrl, numberMatched);
     const jsonResult = await fetchData(url);
     if (!jsonResult) return [];
     return getResultArray(jsonResult);
@@ -115,11 +112,11 @@ const fetchAllDataSTAC = async (STACApiUrl, numberMatched) => {
 };
 
 // helpers
-const addOffsetsToURL = (url, offset, limit) => {
+const addOffsetsToURL = (url, limit) => {
   if (url.includes('?')) {
-    return `${url}&limit=${limit}&offset=${offset}`;
+    return `${url}&limit=${limit}`;
   } else {
-    return `${url}?limit=${limit}&offset=${offset}`;
+    return `${url}?limit=${limit}`;
   }
 };
 
