@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 
+// TODO : see api call for data getting of stac and gpl both
 import {
   MainMap,
   MarkerFeature,
@@ -15,7 +16,6 @@ import {
   FilterByDate,
   CoverageLayers,
   MapViewPortComponent,
-  VisualizationLayers,
   RASTER_ZOOM_LEVEL,
 } from '@components';
 
@@ -24,6 +24,7 @@ import styled from 'styled-components';
 import './index.css';
 import ToggleSwitch from '../../components/ui/toggle';
 import { filterByDateRange, getPopupContent } from './helper';
+import Plumes from './helper/PlumeLayer';
 
 const TITLE = 'EMIT Methane Plume Viewer';
 const DESCRIPTION =
@@ -229,7 +230,7 @@ export function Dashboard({
           ></MarkerFeature>
           {showCoverage && <CoverageLayers coverage={coverageFeatures} />}
           (
-          <VisualizationLayers
+          <Plumes
             vizItems={visualizationLayers}
             VMIN={VMIN}
             VMAX={VMAX}

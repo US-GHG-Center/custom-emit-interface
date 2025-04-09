@@ -8,7 +8,6 @@ import {
   getLayerId,
 } from '../utils/index';
 
-// eslint-disable-next-line prettier/prettier
 export const VisualizationLayer = ({
   VMIN,
   VMAX,
@@ -21,7 +20,6 @@ export const VisualizationLayer = ({
 }) => {
   const { map } = useMapbox();
   const [vizItemId, setVizItemId] = useState('');
-  console.log({ vizItem });
 
   useEffect(() => {
     const id = vizItem?.id || vizItem[0]?.id;
@@ -74,11 +72,15 @@ export const VisualizationLayer = ({
     };
 
     const hoverHandler = (e) => {
+      const polygonLayerId = getLayerId('polygon', vizItemId);
+      map.setPaintProperty(polygonLayerId, 'line-width', 5);
       onHoverOverLayer && onHoverOverLayer(vizItemId);
     };
 
     const hoverClearHandler = (e) => {
-      onHoverOverLayer && onHoverOverLayer('');
+      const polygonLayerId = getLayerId('polygon', vizItemId);
+      map.setPaintProperty(polygonLayerId, 'line-width', 2);
+      onHoverOverLayer && onHoverOverLayer(null);
     };
 
     // Attach event handlers to the map
@@ -102,52 +104,13 @@ export const VisualizationLayers = ({
   vizItems,
   highlightedLayer,
   onHoverOverLayer,
-  setVizItems,
+  onClickedOnLayer,
+  handleRemoveLayer,
 }) => {
   const { map } = useMapbox();
-  const [prevHighlightedLayer, setPrevHighlightedLayer] = useState('');
+
   const [layersToAdd, setLayersToAdd] = useState([]);
-
-  // console.log({ layers: vizItems });
   const eventHandlerRegistryRef = useRef({});
-
-  const handleClickedOnLayer = (layerId) => {
-    if (layerId) {
-      const rasterId = getLayerId('raster', layerId);
-      if (map?.getLayer(rasterId)) {
-        const visibility = map.getLayoutProperty(
-          rasterId,
-          'visibility',
-          'none'
-        );
-        if (visibility === 'none') {
-          map.setLayoutProperty(rasterId, 'visibility', 'visible');
-        } else if (visibility === 'visible') {
-          map.setLayoutProperty(rasterId, 'visibility', 'none');
-        }
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (!map) return;
-    if (highlightedLayer !== '') {
-      const polygonId = getLayerId('polygon', highlightedLayer);
-      const rasterId = getLayerId('raster', highlightedLayer);
-      if (map.getLayer(polygonId))
-        map.setPaintProperty(polygonId, 'line-width', 5);
-      if (map.getLayer(rasterId)) map.moveLayer(rasterId, polygonId);
-      setPrevHighlightedLayer(highlightedLayer);
-    } else {
-      if (prevHighlightedLayer !== '') {
-        const polygonId = getLayerId('polygon', prevHighlightedLayer);
-        if (map.getLayer(polygonId))
-          map.setPaintProperty(polygonId, 'line-width', 2);
-        setPrevHighlightedLayer('');
-      }
-    }
-  }, [highlightedLayer]);
-
   const registerEventHandler = (layerId, eventType, handler) => {
     if (!eventHandlerRegistryRef.current[layerId]) {
       eventHandlerRegistryRef.current[layerId] = {};
@@ -182,23 +145,8 @@ export const VisualizationLayers = ({
 
   const removeLayers = (layersToRemove) => {
     layersToRemove.forEach((vizItemId) => {
-      const rasterSourceId = getSourceId('raster', vizItemId);
-      const rasterLayerId = getLayerId('raster', vizItemId);
-      const polygonSourceId = getSourceId('polygon', vizItemId);
-      const polygonLayerId = getLayerId('polygon', vizItemId);
-      const polygonFillSourceId = getSourceId('fill', vizItemId);
-      const polygonFillLayerId = getLayerId('fill', vizItemId);
-
+      handleRemoveLayer(vizItemId);
       removeEventListeners(vizItemId);
-
-      if (map.getLayer(rasterLayerId)) map.removeLayer(rasterLayerId);
-      if (map.getLayer(polygonLayerId)) map.removeLayer(polygonLayerId);
-      if (map.getLayer(polygonFillLayerId)) map.removeLayer(polygonFillLayerId);
-
-      if (map.getSource(rasterSourceId)) map.removeSource(rasterSourceId);
-      if (map.getSource(polygonSourceId)) map.removeSource(polygonSourceId);
-      if (map.getSource(polygonFillSourceId))
-        map.removeSource(polygonFillSourceId);
     });
   };
 
@@ -233,29 +181,21 @@ export const VisualizationLayers = ({
           removeLayers(layersToRemove);
         }
         // This is for console logging purpose only
-        // const layers = map.getStyle().layers;
-        // const val = layers.filter((item) => item?.id?.includes('raster-'));
-        // console.log({ finalLayers: val });
+        const layers = map.getStyle().layers;
+        const val = layers.filter((item) => item?.id?.includes('raster-'));
+        console.log({ finalLayers: val });
 
-        // const listeners = map._listeners;
-        // console.log({
-        //   all: listeners,
-        //   registry: eventHandlerRegistryRef.current,
-        // });
+        const listeners = map._listeners;
+        console.log({
+          all: listeners,
+          registry: eventHandlerRegistryRef.current,
+        });
       } catch (error) {
         console.warn('Error processing map layers:', error);
       }
     };
 
     if (!map) return;
-
-    if (!map.isStyleLoaded()) {
-      map.once('style.load', () => {
-        processLayers(); // <-- call your function after style loads
-      });
-      return;
-    }
-
     processLayers();
   }, [map, vizItems]);
 
@@ -266,14 +206,13 @@ export const VisualizationLayers = ({
           key={vizItem.id}
           vizItem={vizItem}
           highlightedLayer={highlightedLayer}
-          onClickedOnLayer={handleClickedOnLayer}
+          onClickedOnLayer={onClickedOnLayer}
           onHoverOverLayer={onHoverOverLayer}
           VMIN={VMIN}
           VMAX={VMAX}
           colormap={colormap}
           assets={assets}
           registerEventHandler={registerEventHandler}
-          setVizItems={setVizItems}
         />
       ))}
     </>
