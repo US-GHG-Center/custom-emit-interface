@@ -34,7 +34,7 @@ export function MapViewPortComponent({
 
     const handleViewportChange = () => {
       const zoom = map.getZoom();
-      if (zoom >= ZOOM_LEVEL_MARGIN) {
+      if (zoom >= ZOOM_LEVEL_MARGIN && !fromSearch) {
         findAllLayersInsideViewport(map, initialValues);
       } else {
         handleZoomOutEvent(zoom);
@@ -43,11 +43,10 @@ export function MapViewPortComponent({
     if (initialValues?.length) {
       handleViewportChange();
     }
-  }, [initialValues]);
+  }, [initialValues, fromSearch]);
 
   useEffect(() => {
     if (!map) return;
-
     const handleViewportChange = () => {
       const zoom = map.getZoom();
       if (zoom >= ZOOM_LEVEL_MARGIN) {
