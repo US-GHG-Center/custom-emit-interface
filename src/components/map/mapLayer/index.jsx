@@ -1,47 +1,68 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useMapbox } from '../../../context/mapContext';
 import {
+  addSourcePolygonToMap,
+  addFillPolygonToMap,
   addSourceLayerToMap,
   getSourceId,
   getLayerId,
-  layerExists,
-  sourceExists,
-} from '../utils';
-import { addSourcePolygonToMap, addFillPolygonToMap } from '../utils/index';
+} from '../utils/index';
 
-// eslint-disable-next-line prettier/prettier
+/**
+ * VisualizationLayer
+ *
+ * A single visualization unit that adds raster and polygon layers to the Mapbox map
+ * based on a `vizItem`.VizItem is a single STAC Item. Also attaches interaction handlers for click and hover events.
+ *
+ * @param {Object} props
+ * @param {number} props.VMIN - Minimum visualization value for color scale.
+ * @param {number} props.VMAX - Maximum visualization value for color scale.
+ * @param {string} props.colormap - Colormap name used for raster styling.
+ * @param {string} props.assets - STAC asset key for the raster layer.
+ * @param {Object} props.vizItem - A single plume visualization item (with geometry + metadata)(STAC Item+ metadata).
+ * @param {Function} props.onClickedOnLayer - Callback when the polygon is clicked.
+ * @param {Function} props.onHoverOverLayer - Callback when hovered (or hover is cleared).
+ * @param {Function} props.registerEventHandler - Function to register event handlers for cleanup.
+ *
+ * @returns {null}
+ */
 export const VisualizationLayer = ({
   VMIN,
   VMAX,
   colormap,
   assets,
   vizItem,
-  highlightedLayer,
-  onClickOnLayer,
+  onClickedOnLayer,
   onHoverOverLayer,
+  registerEventHandler,
 }) => {
   const { map } = useMapbox();
-  const vizItemId = vizItem.id;
+  const [vizItemId, setVizItemId] = useState('');
+
+  // Extract the visualization ID once the item is received
+  useEffect(() => {
+    const id = vizItem?.id || vizItem[0]?.id;
+    setVizItemId(id);
+  }, [vizItem]);
 
   useEffect(() => {
-    if (!map || !vizItem) return;
-    const feature = vizItem;
+    if (!map || !vizItemId) return;
+
+    const feature = vizItem || vizItem[0];
     const polygonFeature = {
       geometry: vizItem?.polygonGeometry,
       properties: vizItem?.plumeProperties,
       type: 'Feature',
     };
-    let polygonBorderWidth = 2;
-    if (highlightedLayer === vizItemId) {
-      polygonBorderWidth = 4;
-    }
-    const rasterSourceId = getSourceId('raster' + vizItemId);
-    const rasterLayerId = getLayerId('raster' + vizItemId);
-    const polygonFillSourceId = getSourceId('fill' + vizItemId);
-    const polygonFillLayerId = getLayerId('fill' + vizItemId);
-    const polygonSourceId = getSourceId('polygon' + vizItemId);
-    const polygonLayerId = getLayerId('polygon' + vizItemId);
+    // Unique IDs for all source/layer types
+    const rasterSourceId = getSourceId('raster', vizItemId);
+    const rasterLayerId = getLayerId('raster', vizItemId);
+    const polygonSourceId = getSourceId('polygon', vizItemId);
+    const polygonLayerId = getLayerId('polygon', vizItemId);
+    const polygonFillSourceId = getSourceId('fill', vizItemId);
+    const polygonFillLayerId = getLayerId('fill', vizItemId);
 
+    // Add layers to map
     addSourceLayerToMap(
       map,
       VMIN,
@@ -52,75 +73,68 @@ export const VisualizationLayer = ({
       rasterSourceId,
       rasterLayerId
     );
+
     addSourcePolygonToMap(
       map,
       polygonFeature,
       polygonSourceId,
       polygonLayerId,
-      polygonBorderWidth
+      2
     );
-    addFillPolygonToMap(map, feature, polygonFillSourceId, polygonFillLayerId);
 
-    const onClickHandler = (e) => {
-      onClickOnLayer && onClickOnLayer(vizItemId);
+    addFillPolygonToMap(map, vizItem, polygonFillSourceId, polygonFillLayerId);
+    map.setLayoutProperty(rasterLayerId, 'visibility', 'visible');
+
+    // Define event handlers
+    const clickHandler = (e) => {
+      onClickedOnLayer && onClickedOnLayer(vizItemId);
     };
 
-    const onHoverHandler = (e) => {
+    const hoverHandler = (e) => {
+      const polygonLayerId = getLayerId('polygon', vizItemId);
+      map.setPaintProperty(polygonLayerId, 'line-width', 5);
       onHoverOverLayer && onHoverOverLayer(vizItemId);
     };
-    const onHoverClearHandler = (e) => {
-      onHoverOverLayer && onHoverOverLayer('');
+
+    const hoverClearHandler = (e) => {
+      const polygonLayerId = getLayerId('polygon', vizItemId);
+      map.setPaintProperty(polygonLayerId, 'line-width', 2);
+      onHoverOverLayer && onHoverOverLayer(null);
     };
 
-    map.setLayoutProperty(rasterLayerId, 'visibility', 'visible');
-    map.on('click', polygonFillLayerId, onClickHandler);
-    map.on('mouseover', polygonFillLayerId, onHoverHandler);
-    map.on('mouseleave', polygonFillLayerId, onHoverClearHandler);
+    // Attach event handlers to the map
+    map.on('click', polygonFillLayerId, clickHandler);
+    map.on('mouseenter', polygonFillLayerId, hoverHandler);
+    map.on('mouseleave', polygonFillLayerId, hoverClearHandler);
 
-    return () => {
-      // cleanups
-      if (map) {
-        if (layerExists(map, rasterLayerId)) map.removeLayer(rasterLayerId);
-        if (sourceExists(map, rasterSourceId)) map.removeSource(rasterSourceId);
-        if (layerExists(map, polygonLayerId)) map.removeLayer(polygonLayerId);
-        if (sourceExists(map, polygonSourceId))
-          map.removeSource(polygonSourceId);
-        if (layerExists(map, polygonFillLayerId))
-          map.removeLayer(polygonFillLayerId);
-        if (sourceExists(map, polygonFillSourceId))
-          map.removeSource(polygonFillSourceId);
-
-        map.off('click', polygonFillLayerId, onClickHandler);
-        map.off('mouseenter', polygonFillLayerId, onHoverHandler);
-        map.off('mouseleave', polygonFillLayerId, onHoverClearHandler);
-      }
-    };
-  }, [
-    vizItem,
-    map,
-    vizItemId,
-    onClickOnLayer,
-    onHoverOverLayer,
-    VMIN,
-    VMAX,
-    colormap,
-    assets,
-    highlightedLayer,
-  ]);
+    registerEventHandler(polygonFillLayerId, 'click', clickHandler);
+    registerEventHandler(polygonFillLayerId, 'mouseenter', hoverHandler);
+    registerEventHandler(polygonFillLayerId, 'mouseleave', hoverClearHandler);
+  }, [map, vizItem, vizItemId]);
 
   return null;
 };
-/*
-      Add layers of visualization components on top of map
-      
-      @param {number} VMIN - minimum value of the color index
-      @param {number} VMAX - maximum value of the color index
-      @param {string} colormap - name of the colormap
-      @param {string} assets - name of the asset of the color
-      @param {STACItem} vizItems   - An array of STACitems which are to be displayed
-      @param {function} onHoverOverlayer - function to execute when mouse is hovered on layer. will provide vizItemId as a parameter to the callback
-      @param {function} onClickOnlayer - function to execute when layer is clicked. will provide vizItemId as a parameter to the callback
-*/
+
+/**
+ * VisualizationLayers
+ *
+ * Handles rendering and syncing of all visualization layers with the current
+ * map viewport and dataset (`vizItems`). Dynamically adds or removes layers as needed.
+ *
+ * @param {Object} props
+ * @param {number} props.VMIN - Min value for color scaling.
+ * @param {number} props.VMAX - Max value for color scaling.
+ * @param {string} props.colormap - Colormap name.
+ * @param {string} props.assets - Raster asset type for the collection.
+ * @param {Array} props.vizItems - List of visualization items currently in view. Array of (STAC + their metadata)
+ * @param {string|null} props.highlightedLayer - ID of currently highlighted plume.
+ * @param {Function} props.onHoverOverLayer - Hover callback.
+ * @param {Function} props.onClickedOnLayer - Click callback.
+ * @param {Function} props.handleRemoveLayer - Called when a layer is removed. Define
+ *                  action for layers that goes out of viewport.
+ *
+ * @returns {JSX.Element} Rendered `VisualizationLayer` components.
+ */
 
 export const VisualizationLayers = ({
   VMIN,
@@ -130,26 +144,119 @@ export const VisualizationLayers = ({
   vizItems,
   highlightedLayer,
   onHoverOverLayer,
-  onClickOnLayer,
+  onClickedOnLayer,
+  handleRemoveLayer,
 }) => {
   const { map } = useMapbox();
-  if (!map || !vizItems.length) return;
+
+  const [layersToAdd, setLayersToAdd] = useState([]);
+
+  const eventHandlerRegistryRef = useRef({});
+  // Utility to track and retrieve event handlers
+  const registerEventHandler = (layerId, eventType, handler) => {
+    if (!eventHandlerRegistryRef.current[layerId]) {
+      eventHandlerRegistryRef.current[layerId] = {};
+    }
+    eventHandlerRegistryRef.current[layerId][eventType] = handler;
+  };
+
+  const getEventHandler = (layerId, eventType) => {
+    return eventHandlerRegistryRef.current[layerId]?.[eventType];
+  };
+
+  const clearEventHandlers = (layerId) => {
+    delete eventHandlerRegistryRef.current[layerId];
+  };
+
+  const removeEventListeners = (vizItemId) => {
+    const polygonFillLayerId = getLayerId('fill', vizItemId);
+
+    const clickHandler = getEventHandler(polygonFillLayerId, 'click');
+    const hoverHandler = getEventHandler(polygonFillLayerId, 'mouseenter');
+    const hoverClearHandler = getEventHandler(polygonFillLayerId, 'mouseleave');
+
+    if (map.getLayer(polygonFillLayerId)) {
+      if (clickHandler) map.off('click', polygonFillLayerId, clickHandler);
+      if (hoverHandler) map.off('mouseenter', polygonFillLayerId, hoverHandler);
+      if (hoverClearHandler)
+        map.off('mouseleave', polygonFillLayerId, hoverClearHandler);
+    }
+
+    clearEventHandlers(polygonFillLayerId);
+  };
+
+  const removeLayers = (layersToRemove) => {
+    layersToRemove.forEach((vizItemId) => {
+      handleRemoveLayer(vizItemId);
+      removeEventListeners(vizItemId);
+    });
+  };
+  // Watch for changes in vizItems and sync map layers accordingly
+  useEffect(() => {
+    const processLayers = () => {
+      try {
+        const currentLayersOnMap = map.getStyle()?.layers || [];
+        const currentRasterLayersOnMap = currentLayersOnMap.filter((item) =>
+          item?.id?.includes('raster-')
+        );
+
+        const currentLayersInMapIds = new Set(
+          currentRasterLayersOnMap.map((obj) => obj.id?.split('-')[1])
+        );
+        const itemsInViewPortId = new Set(vizItems.map((item) => item?.id));
+
+        const newLayersToAdd = vizItems.filter(
+          (item) => !currentLayersInMapIds.has(item.id)
+        );
+
+        if (newLayersToAdd.length) {
+          setLayersToAdd(newLayersToAdd);
+        } else {
+          setLayersToAdd([]);
+        }
+
+        const layersToRemove = [...currentLayersInMapIds].filter(
+          (id) => !itemsInViewPortId.has(id)
+        );
+
+        if (layersToRemove.length) {
+          removeLayers(layersToRemove);
+        }
+        // This is for console logging purpose only
+        // const layers = map.getStyle().layers;
+        // const val = layers.filter((item) => item?.id?.includes('raster-'));
+        // console.log({ finalLayers: val });
+
+        // const listeners = map._listeners;
+        // console.log({
+        //   all: listeners,
+        //   registry: eventHandlerRegistryRef.current,
+        // });
+      } catch (error) {
+        console.warn('Error processing map layers:', error);
+      }
+    };
+
+    if (!map) return;
+    processLayers();
+  }, [map, vizItems]);
+
   return (
     <>
-      {vizItems.length &&
-        vizItems.map((vizItem) => (
-          <VisualizationLayer
-            key={vizItem.id}
-            vizItem={vizItem}
-            highlightedLayer={highlightedLayer}
-            onClickOnLayer={onClickOnLayer}
-            onHoverOverLayer={onHoverOverLayer}
-            VMIN={VMIN}
-            VMAX={VMAX}
-            colormap={colormap}
-            assets={assets}
-          />
-        ))}
+      {layersToAdd.map((vizItem) => (
+        <VisualizationLayer
+          key={vizItem.id}
+          vizItem={vizItem}
+          highlightedLayer={highlightedLayer}
+          onClickedOnLayer={onClickedOnLayer}
+          onHoverOverLayer={onHoverOverLayer}
+          VMIN={VMIN}
+          VMAX={VMAX}
+          colormap={colormap}
+          assets={assets}
+          registerEventHandler={registerEventHandler}
+        />
+      ))}
     </>
   );
 };

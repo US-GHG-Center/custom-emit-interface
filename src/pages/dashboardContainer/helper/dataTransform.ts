@@ -1,7 +1,26 @@
-import { STACItem } from '../../../dataModel';
-import { Features, Metadata } from '../../../dataModel';
+/**
+ * Helper functions for transforming metadata and coverage data for visualization.
+ * Includes:
+ *  - reverse geocoding plume coordinates
+ *  - mapping metadata features to STAC items
+ *  - processing coverage polygons with rounded coordinates
+ *  - indexing coverage data by time
+ *
+ * @module dataTransform
+ */
+import {
+  Features,
+  Metadata,
+  STACItem,
+  Plume,
+  PointGeometry,
+  Geometry,
+  Properties,
+  CoverageData,
+  CoverageFeature,
+  CoverageGeoJsonData,
+} from '../../../dataModel';
 
-import { Plume, PointGeometry, Geometry, Properties } from '../../../dataModel';
 import {
   getAllLocation,
   getResultArray,
@@ -9,6 +28,15 @@ import {
   fetchLocationFromEndpoint,
 } from '../../../services/api';
 
+/**
+ * Performs reverse geocoding for a given feature based on its plume ID.
+ * Falls back to coordinate lookup if location is not in the provided map.
+ *
+ * @async
+ * @param {Record<string, string>} allLocation - A lookup map of plume ID to location.
+ * @param {Features} feature - Metadata feature to geocode.
+ * @returns {Promise<string>} - The resolved location string.
+ */
 const reverseGeocoding = async (
   allLocation: Record<string, string>,
   feature: Features
@@ -21,11 +49,19 @@ const reverseGeocoding = async (
     const lat = feature.properties['Latitude of max concentration'];
     const lon = feature.properties['Longitude of max concentration'];
     const location = await fetchLocationFromEndpoint(lat, lon);
-    console.log({ location });
     return location;
   }
 };
 
+/**
+ * Transforms metadata and STAC item information into plume objects,
+ * performing location resolution and geometry extraction.
+ *
+ * @async
+ * @param {Metadata} metadata - Metadata for all the items.
+ * @param {STACItem[]} stacData - Array of STAC items .
+ * @returns {Promise<{ data: Record<string, Plume> }>} - A plume map keyed by STAC item ID.
+ */
 export const transformMetadata = async (
   metadata: Metadata,
   stacData: STACItem[]
@@ -53,14 +89,12 @@ export const transformMetadata = async (
     const next_date = new Date(next.properties.datetime).getTime();
     return prev_date - next_date;
   });
-  // for test purposes only 
-  // stacData = sortedData.slice(0, 200);
   // Transform stac data to markers with associated data
   const plumes: Record<string, Plume> = {};
-  stacData.forEach(async (item: STACItem) => {
+  sortedData.forEach(async (item: STACItem) => {
     const id = item.id;
-    const pointInfo:Features = pointLookup.get(id) as Features;
-    const polygonInfo:Features = polygonLookup.get(id) as Features;
+    const pointInfo: Features = pointLookup.get(id) as Features;
+    const polygonInfo: Features = polygonLookup.get(id) as Features;
     const location = await reverseGeocoding(allLocation, pointInfo as Features);
     const properties: Properties = {
       longitudeOfMaxConcentration:
@@ -115,3 +149,54 @@ export const transformMetadata = async (
     data: plumes,
   };
 };
+
+const roundCoordinates = (geometry: Geometry) => {
+  if (geometry && geometry.coordinates) {
+    geometry.coordinates = geometry.coordinates.map((polygon) =>
+      polygon.map(
+        (coord) => coord.map((value) => Math.round(value * 100) / 100) // Round to 2 decimal places
+      )
+    );
+  }
+  return geometry;
+};
+
+/**
+ * Creates a date-sorted, indexed coverage GeoJSON dataset.
+ * Useful for efficient time-based filtering.
+ *
+ * @param {CoverageData} coverageData - Full coverage dataset.
+ * @returns {CoverageGeoJsonData} - FeatureCollection sorted by `start_time`.
+ */
+export function createIndexedCoverageData(coverageData: CoverageData) {
+  const coverageFeatures: CoverageFeature[] = coverageData.features;
+  const processedCoverages = coverageFeatures.map((feature) => {
+    const processedFeature: CoverageFeature = {
+      properties: {
+        start_time: feature.properties['start_time'],
+        end_time: feature.properties['end_time'],
+      },
+      geometry: roundCoordinates(feature.geometry),
+    } as CoverageFeature;
+    return processedFeature;
+  });
+
+  // Create sorted array of features by date for binary search
+  const sortedFeatures: CoverageFeature[] = [...processedCoverages].sort(
+    (a, b) => {
+      const dateA = new Date(
+        a.properties.start_time || a.properties.start_time || 0
+      );
+      const dateB = new Date(
+        b.properties.start_time || b.properties.start_time || 0
+      );
+      return dateA.getTime() - dateB.getTime();
+    }
+  );
+  const result: CoverageGeoJsonData = {
+    type: 'FeatureCollection',
+    features: sortedFeatures,
+  };
+
+  return result;
+}

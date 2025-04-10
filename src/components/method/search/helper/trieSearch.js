@@ -1,5 +1,13 @@
 import { TrieTree } from './trieTree';
 
+
+/**
+ * TrieSearch
+ *
+ * Manages a searchable trie index for plume identifiers.
+ * Designed to support autocomplete-style prefix search on structured IDs.
+ * For example: `Mexico_Durango_BV1_BV1-1` allows search by country, state, region, or plume ID.
+ */
 export class TrieSearch {
   constructor() {
     this.trieTree = new TrieTree();

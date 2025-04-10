@@ -1,13 +1,32 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { EmitDashboard } from '../dashboard/index.jsx';
-import { Plumes } from '../../assets/dataset/testData.js';
-import { fetchCollectionMetadata, fetchAllFromSTACAPI, fetchData } from '../../services/api.js';
-import { transformMetadata } from './helper/dataTransform.ts';
+import { Dashboard } from '../dashboard/index.jsx';
 
+import {
+  fetchCollectionMetadata,
+  fetchAllFromSTACAPI,
+  fetchData,
+  getCoverageData,
+} from '../../services/api.js';
+import { transformMetadata } from './helper/dataTransform.ts';
+import { createIndexedCoverageData } from './helper/dataTransform.ts';
+
+/**
+ * DashboardContainer Component
+ *
+ * Responsible for initializing and loading required data for the Dashboard.
+ * This includes:
+ *  - Fetching STAC metadata and transforming it to internal plume structure.
+ *  - Fetching and indexing coverage data.
+ *  - Managing map zoom state from URL query parameters.
+ *
+ * @component
+ * @returns {JSX.Element} Rendered Dashboard component
+ */
 export function DashboardContainer() {
   // get the query params
   const [searchParams] = useSearchParams();
+  const [coverage, setCoverage] = useState();
   const [zoomLocation, setZoomLocation] = useState(
     searchParams.get('zoom-location') || []
   ); // let default zoom location be controlled by map component
@@ -29,23 +48,20 @@ export function DashboardContainer() {
         // // fetch in the collection from the features api
         const collectionUrl = `${process.env.REACT_APP_BASE_STAC_API_URL}/collections/${collectionId}`;
         // // use this url to find out the data frequency of the collection
-        const collectionMetadata = await fetchCollectionMetadata(collectionUrl)
-        setCollectionMeta(collectionMetadata)
-       
-        // const metaDataEndpoint = `${process.env.REACT_APP_METADATA_ENDPOINT}`;
-        // const stacAPIEndpoint = `${process.env.REACT_APP_STAC_API_URL}`;
-        // // get all the metadata items
-        // const metadata = await fetchData(metaDataEndpoint);
-        // // get all the stac Items
-        // const stacData = await fetchAllFromSTACAPI(stacAPIEndpoint);
+        const collectionMetadata = await fetchCollectionMetadata(collectionUrl);
+        setCollectionMeta(collectionMetadata);
 
-        // console.log({ metadata, stacData });
-        // // transform the data
-        // const { data } = transformMetadata(metadata, stacData);
-        // console.log({ data });
-        // setPlumes(data);
+        const metaDataEndpoint = `${process.env.REACT_APP_METADATA_ENDPOINT}`;
+        const stacAPIEndpoint = `${process.env.REACT_APP_STAC_API_URL}`;
+        // get all the metadata items
+        const metadata = await fetchData(metaDataEndpoint);
+        // get all the stac Items
+        const stacData = await fetchAllFromSTACAPI(stacAPIEndpoint);
 
-        setPlumes(Plumes);
+        // transform the data
+        const { data } = await transformMetadata(metadata, stacData);
+        setPlumes(data);
+
         // remove loading
         setLoadingData(false);
       } catch (error) {
@@ -56,9 +72,34 @@ export function DashboardContainer() {
     init().catch(console.error);
   }, []); // only on initial mount
 
+  // Fetch coverage separately in the background
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCoverage = async () => {
+      try {
+        const coverageUrl = process.env.REACT_APP_COVERAGE_URL;
+        // const coverageUrl = `${process.env.PUBLIC_URL}/data/coverages.json`;
+        const coverageData = await getCoverageData(coverageUrl);
+        const indexedCoverageData = createIndexedCoverageData(coverageData);
+        // const coverageData = coverages;
+        if (isMounted && coverageData?.features?.length > 0) {
+          setCoverage(indexedCoverageData);
+        }
+      } catch (error) {
+        console.error('Error fetching coverage data:', error);
+      }
+    };
+
+    fetchCoverage();
+    return () => {
+      isMounted = false; // Cleanup in case the component unmounts before fetch completes
+    };
+  }, []);
+
   return (
-    <EmitDashboard
+    <Dashboard
       plumes={plumes}
+      coverage={coverage}
       zoomLocation={zoomLocation}
       zoomLevel={zoomLevel}
       setZoomLocation={setZoomLocation}

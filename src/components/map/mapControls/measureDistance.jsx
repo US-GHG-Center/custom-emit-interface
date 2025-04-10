@@ -3,6 +3,17 @@ import StraightenIcon from '@mui/icons-material/Straighten';
 import ReactDOM from 'react-dom/client';
 import Tooltip from '@mui/material/Tooltip';
 
+/**
+ * MeasureButton Component
+ *
+ * A React button rendered inside a Mapbox control. It visually toggles
+ * to indicate active measurement mode and triggers a callback on click.
+ *
+ * @param {Object} props
+ * @param {boolean} props.icon - Whether the button is in "active" (clicked) state.
+ * @param {Function} props.onClick - Function to call when the button is clicked.
+ * @returns {JSX.Element}
+ */
 function MeasureButton({ icon: iconClicked, onClick }) {
   return (
     <Tooltip title='Measurement Scale'>
@@ -19,8 +30,18 @@ function MeasureButton({ icon: iconClicked, onClick }) {
     </Tooltip>
   );
 }
-
+/**
+ * MeasureDistanceControl Class
+ *
+ * A custom Mapbox GL JS control that adds a distance measurement toggle.
+ * Internally uses a React component (`MeasureButton`) rendered into the control container.
+ * Tracks toggle state and updates UI when clicked.
+ */
 export class MeasureDistanceControl {
+  /**
+   * @param {boolean} measureMode - Initial state of measurement tool (on/off).
+   * @param {Function} onClick - Callback to toggle measurement mode in parent.
+   */
   constructor(measureMode, onClick) {
     this._mounted = false;
     this.container = null;
@@ -30,12 +51,18 @@ export class MeasureDistanceControl {
     this._onClick = onClick;
   }
 
+  /**
+   * Internal click handler that toggles icon state and re-renders UI.
+   */
   handleClick = () => {
     if (!this._mounted || !this.map) return;
     this._onClick();
     this.icon = !this.icon;
     this.updateUI();
   };
+  /**
+   * Renders the current UI (icon with correct active/inactive styling).
+   */
   updateUI() {
     if (this._mounted && this.root) {
       try {
@@ -48,6 +75,13 @@ export class MeasureDistanceControl {
     }
   }
 
+  /**
+   * Called when Mapbox adds the control to the map.
+   * Sets up DOM container and mounts React root.
+   *
+   * @param {mapboxgl.Map} map - The map instance from Mapbox GL JS.
+   * @returns {HTMLElement} DOM container element for the control.
+   */
   onAdd(map) {
     try {
       this.map = map;
@@ -65,7 +99,10 @@ export class MeasureDistanceControl {
       return document.createElement('div');
     }
   }
-
+  /**
+   * Called when Mapbox removes the control from the map.
+   * Unmounts React root and clears DOM references.
+   */
   onRemove() {
     setTimeout(() => {
       try {

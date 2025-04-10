@@ -4,10 +4,12 @@ export { useMapbox } from '../context/mapContext/index.js';
 export { MapControls } from './map/mapControls/index.jsx';
 
 // Map Features
+export { MapViewPortComponent } from './map/viewport';
 export { VizItemAnimation } from './map/itemAnimation/index.jsx';
 export { MeasurementLayer } from './map/measurementLayer';
 export { MarkerFeature } from './map/mapMarker';
 export { MapZoom } from './map/mapZoom';
+export { CoverageLayers } from './map/coverage';
 
 // Map Layers
 export { VisualizationLayers } from './map/mapLayer';
@@ -30,5 +32,4 @@ export {
   layerExists,
   sourceExists,
 } from './map/utils';
-
-// Add other component exports here as needed
+export { ZOOM_LEVEL_MARGIN, RASTER_ZOOM_LEVEL } from './map/utils/constants.js';

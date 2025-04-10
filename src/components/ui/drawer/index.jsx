@@ -5,7 +5,7 @@ import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import CssBaseline from '@mui/material/CssBaseline';
 import { VisualizationItemCard } from '../card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import './index.css';
 
@@ -59,6 +59,23 @@ const HorizontalLayout = styled.div`
   margin-bottom: 5px;
 `;
 
+/**
+ * PersistentDrawerRight
+ *
+ * A right-side drawer that displays selected plume visualization items as cards.
+ * Highlights the hovered item and auto-scrolls to bring it into view.
+ *
+ * @param {Object} props
+ * @param {boolean} props.open - Whether the drawer is open.
+ * @param {Function} props.setOpen - Setter function to control drawer visibility.
+ * @param {Array} props.selectedVizItems - Array of plume items currently in the viewport.
+ * @param {string} props.hoveredVizLayerId - ID of the plume currently hovered on the map.
+ * @param {string} props.collectionId - ID of the STAC collection
+ * @param {Function} props.onSelectVizLayer - Called when a card is clicked.
+ * @param {Function} props.onHoverOnVizLayer - Called on hover enter/leave.
+ *
+ * @returns {JSX.Element}
+ */
 export function PersistentDrawerRight({
   open,
   setOpen,
@@ -69,6 +86,8 @@ export function PersistentDrawerRight({
   onHoverOnVizLayer,
 }) {
   const [numberOfVizItems, setNumberOfVizItems] = useState(0);
+  const highlightedCardRef = useRef(null);
+
   const handleDrawerClose = () => {
     setOpen(false);
   };
@@ -82,7 +101,14 @@ export function PersistentDrawerRight({
     setNumberOfVizItems(numberOfVizItems);
   }, [selectedVizItems]);
 
-  // console.log({ selectedVizItems });
+  useEffect(() => {
+    if (hoveredVizLayerId && highlightedCardRef.current) {
+      highlightedCardRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [hoveredVizLayerId]);
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -131,6 +157,11 @@ export function PersistentDrawerRight({
           selectedVizItems?.map((selectedVizItem) => (
             <VisualizationItemCard
               key={selectedVizItem?.id}
+              ref={
+                selectedVizItem?.id === hoveredVizLayerId
+                  ? highlightedCardRef
+                  : null
+              }
               vizItem={selectedVizItem}
               collectionId={collectionId}
               onSelectVizLayer={onSelectVizLayer}

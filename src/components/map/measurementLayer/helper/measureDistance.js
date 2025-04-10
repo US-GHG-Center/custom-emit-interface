@@ -76,7 +76,13 @@ const labelLayer = {
     'text-halo-width': 2,
   },
 };
-
+/**
+ * Dynamically updates the map cursor when using the measurement tool.
+ *
+ * @param {mapboxgl.Map} map - Mapbox map instance
+ * @param {GeoJSON.FeatureCollection} measurePoints - Current measurement points
+ * @param {boolean} measureMode - Whether measurement mode is active
+ */
 export function changeCursor(map, measurePoints, measureMode) {
   const totalPoints = measurePoints?.features.filter(
     (f) => f.geometry.type === 'Point'
@@ -87,12 +93,25 @@ export function changeCursor(map, measurePoints, measureMode) {
   map.getCanvas().style.cursor = crosshair ? 'crosshair' : 'pointer';
 }
 
+/**
+ * Clears all measurement data from sources.
+ *
+ * @param {mapboxgl.Map} map - Mapbox instance
+ */
 export function cleanMeasurementControlLayers(map) {
   map.getSource('measurePoints').setData(MEASURE_POINTS);
   map.getSource('measureLine').setData(MEASURE_LINE);
   map.getSource('measureLabel').setData(MEASURE_LABEL);
 }
 
+/**
+ * Handles placing or removing anchor points for measuring.
+ *
+ * @param {Object} e - Mapbox mouse event
+ * @param {mapboxgl.Map} map - Map instance
+ * @param {GeoJSON.FeatureCollection} measurePoints - Existing points
+ * @returns {GeoJSON.FeatureCollection} Updated points
+ */
 export function findMeasurementAnchor(e, map, measurePoints) {
   const features = map.queryRenderedFeatures(e.point, {
     layers: ['measure-points'],
@@ -134,7 +153,14 @@ export function findMeasurementAnchor(e, map, measurePoints) {
   }
   return temp;
 }
-
+/**
+ * Adds measurement sources to the map (points, line, label).
+ *
+ * @param {mapboxgl.Map} map - Mapbox instance
+ * @param {*} measurePoints - Points GeoJSON
+ * @param {*} measureLine - Line GeoJSON
+ * @param {*} measureLabelAnchor - Label GeoJSON
+ */
 export function addMeasurementSource(
   map,
   measurePoints,
@@ -163,7 +189,11 @@ export function addMeasurementSource(
     data: measureLabelAnchor,
   });
 }
-
+/**
+ * Adds Mapbox layers for measuring points, lines, and labels.
+ *
+ * @param {mapboxgl.Map} map - Mapbox instance
+ */
 export function addMeasurementLayer(map) {
   if (
     !map ||
@@ -177,6 +207,12 @@ export function addMeasurementLayer(map) {
   map.addLayer(labelLayer);
   map.addLayer(lineLayer);
 }
+
+/**
+ * Removes measurement layers from the map (if they exist).
+ *
+ * @param {mapboxgl.Map} map - Mapbox instance
+ */
 export function removeMeasurementLayer(map) {
   if (map) {
     if (layerExists(map, `measure-points`)) map.removeLayer('measure-points');
@@ -184,6 +220,11 @@ export function removeMeasurementLayer(map) {
     if (layerExists(map, `measure-label`)) map.removeLayer('measure-label');
   }
 }
+/**
+ * Resets measurement sources to empty state.
+ *
+ * @param {mapboxgl.Map} map - Mapbox instance
+ */
 export function removeMeasurementSource(map) {
   if (map) {
     map.getSource('measureLabel')?.setData(MEASURE_LABEL);
@@ -191,7 +232,14 @@ export function removeMeasurementSource(map) {
     map.getSource('measureLine')?.setData(MEASURE_LINE);
   }
 }
-
+/**
+ * Creates a measuring line and a label feature using Turf.
+ *
+ * @param {Object} e - Mapbox event with `lngLat`
+ * @param {GeoJSON.FeatureCollection} measurePoints - Point features
+ * @param {string} mapScaleUnit - Unit: 'km' or 'mi'
+ * @returns {{line: GeoJSON.Feature, label: GeoJSON.Feature}} Line and label features
+ */
 export function createMeasuringLine(e, measurePoints, mapScaleUnit) {
   const anchorPoint = measurePoints?.features[0];
   const startCoordinates = anchorPoint?.geometry.coordinates;

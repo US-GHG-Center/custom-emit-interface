@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -66,144 +66,165 @@ const CaptionValue = ({ caption, value, className }) => {
     </div>
   );
 };
+/**
+ * VisualizationItemCard
+ *
+ * Displays detailed plume information in a card layout with preview image, metadata,
+ * and interaction handlers for hover and selection.
+ *
+ * @param {Object} props
+ * @param {Object} props.vizItem - Plume STAC item object.
+ * @param {string} props.collectionId - ID of the STAC collection.
+ * @param {Function} props.onSelectVizLayer - Callback triggered when card is clicked.
+ * @param {Function} props.onHoverOnVizLayer - Callback triggered on mouse enter/leave.
+ * @param {string} props.hoveredVizItemId - ID of the currently hovered item (used for highlight sync).
+ * @param {Ref} ref - React ref to support scroll-to or measurement.
+ *
+ * @returns {JSX.Element}
+ */
+export const VisualizationItemCard = forwardRef(
+  (
+    {
+      vizItem,
+      collectionId,
+      onSelectVizLayer,
+      onHoverOnVizLayer,
+      hoveredVizItemId,
+    },
+    ref
+  ) => {
+    const vizItemSourceId = vizItem?.id;
+    const orbit = vizItem?.plumeProperties?.orbit;
+    const imageUrl = `${process.env.REACT_APP_RASTER_API_URL}/collections/emit-ch4plume-v1/items/${vizItemSourceId}/preview.png?bidx=1&assets=ch4-plume-emissions&rescale=1%2C1500&resampling=bilinear&colormap_name=plasma`;
+    const tiffUrl = vizItem?.plumeProperties?.assetLink;
+    const location = vizItem?.plumeProperties?.location;
+    const maxPlumeConcentration = vizItem?.plumeProperties?.maxConcentration;
+    const concentrationUncertanity =
+      vizItem?.plumeProperties?.concentrationUncertanity;
+    const utcTimeObserved = vizItem?.plumeProperties?.utcTimeObserved;
+    const latitudeOfMaxConcentration =
+      vizItem?.plumeProperties?.latitudeOfMaxConcentration;
+    const longitudeOfMaxConcentration =
+      vizItem?.plumeProperties?.longitudeOfMaxConcentration;
 
-export function VisualizationItemCard({
-  vizItem,
-  collectionId,
-  onSelectVizLayer,
-  onHoverOnVizLayer,
-  hoveredVizItemId,
-}) {
-  const vizItemSourceId = vizItem?.id;
-  // console.log({ hoveredVizItemId,vizItemSourceId });
-  const orbit = vizItem?.plumeProperties?.orbit;
-  const imageUrl = `${process.env.REACT_APP_RASTER_API_URL}/collections/emit-ch4plume-v1/items/${vizItemSourceId}/preview.png?bidx=1&assets=ch4-plume-emissions&rescale=1%2C1500&resampling=bilinear&colormap_name=plasma`;
-  const tiffUrl = `${process.env.REACT_APP_CLOUD_BROWSE_URL}/browseui/#${collectionId}/#q=${vizItem.id.split('_').slice(-1)}`;
-  const location = vizItem?.plumeProperties?.location;
-  const maxPlumeConcentration = vizItem?.plumeProperties?.maxConcentration;
-  const concentrationUncertanity =
-    vizItem?.plumeProperties?.concentrationUncertanity;
-  const utcTimeObserved = vizItem?.plumeProperties?.utcTimeObserved;
-  const latitudeOfMaxConcentration =
-    vizItem?.plumeProperties?.latitudeOfMaxConcentration;
-  const longitudeOfMaxConcentration =
-    vizItem?.plumeProperties?.longitudeOfMaxConcentration;
+    const [isHovered, setIsHovered] = useState(false);
 
-  const [isHovered, setIsHovered] = useState(false);
+    const handleCardClick = () => {
+      onSelectVizLayer && onSelectVizLayer(vizItemSourceId);
+    };
 
-  const handleCardClick = () => {
-    onSelectVizLayer && onSelectVizLayer(vizItemSourceId);
-  };
+    const handleMouseEnter = () => {
+      onHoverOnVizLayer(vizItemSourceId);
+    };
 
-  const handleMouseEnter = () => {
-    onHoverOnVizLayer(vizItemSourceId);
-  };
+    const handleMouseLeave = () => {
+      onHoverOnVizLayer('');
+    };
+    useEffect(() => {
+      if (hoveredVizItemId === vizItemSourceId) setIsHovered(true);
+      if (hoveredVizItemId !== vizItemSourceId) setIsHovered(false);
+    }, [hoveredVizItemId, vizItemSourceId]);
+    return (
+      <div ref={ref}>
+        <HighlightableCard
+          sx={{ display: 'flex', flex: '0 0 auto', margin: '15px' }}
+          onClick={handleCardClick}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          $isHovered={isHovered}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <CardMedia
+              component='img'
+              height='100'
+              sx={{
+                padding: '0.8em',
+                objectFit: 'contain',
+                minWidth: '80px',
+                imageRendering: 'pixelated',
+              }}
+              image={imageUrl}
+              alt='plume image'
+            />
+          </div>
 
-  const handleMouseLeave = () => {
-    onHoverOnVizLayer('');
-  };
-  useEffect(() => {
-    if (hoveredVizItemId === vizItemSourceId) setIsHovered(true);
-    if (hoveredVizItemId !== vizItemSourceId) setIsHovered(false);
-  }, [hoveredVizItemId, vizItemSourceId]);
-  return (
-    <HighlightableCard
-      sx={{ display: 'flex', flex: '0 0 auto', margin: '15px' }}
-      onClick={handleCardClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      $isHovered={isHovered}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <CardMedia
-          component='img'
-          height='100'
-          sx={{
-            padding: '0.8em',
-            objectFit: 'contain',
-            minWidth: '80px',
-            imageRendering: 'pixelated',
-          }}
-          image={imageUrl}
-          alt='plume image'
-        />
+          <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <CardContent sx={{ flex: '1 0 auto' }}>
+              <HorizontalLayout>
+                <CaptionValue
+                  className='card-plume'
+                  caption='ID:'
+                  value={vizItemSourceId}
+                />
+                <CaptionValue
+                  className='card-plume'
+                  caption='Orbit'
+                  value={orbit}
+                />
+              </HorizontalLayout>
+
+              <HorizontalLayout>
+                {/* eslint-disable-next-line prettier/prettier */}
+                <a
+                  href={tiffUrl}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='card-download-link'
+                >
+                  <Typography variant='caption' component='div'>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      Download the Tiff File <DownloadIcon fontSize='small' />
+                    </div>
+                  </Typography>
+                </a>
+              </HorizontalLayout>
+              <Divider></Divider>
+              <HorizontalLayout>
+                <CaptionValue
+                  className='card-plume'
+                  caption='Location'
+                  value={location}
+                />
+                <CaptionValue
+                  className='card-plume'
+                  caption='UTC Time Observed:'
+                  value={utcTimeObserved}
+                />
+              </HorizontalLayout>
+              <HorizontalLayout>
+                <CaptionValue
+                  className='card-plume'
+                  caption='Max Plume Concentration:'
+                  value={maxPlumeConcentration + ' ppm m'}
+                />
+                <CaptionValue
+                  className='card-plume'
+                  caption='Concentration Uncertainity:'
+                  value={concentrationUncertanity + ' ppm m'}
+                />
+              </HorizontalLayout>
+              <HorizontalLayout>
+                <CaptionValue
+                  className='card-plume'
+                  caption='Longitude (Max Conc):'
+                  value={Number(longitudeOfMaxConcentration).toFixed(3)}
+                />
+                <CaptionValue
+                  className='card-plume'
+                  caption='Latitude (Max Conc):'
+                  value={Number(latitudeOfMaxConcentration).toFixed(3)}
+                />
+              </HorizontalLayout>
+            </CardContent>
+          </Box>
+        </HighlightableCard>
       </div>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <CardContent sx={{ flex: '1 0 auto' }}>
-          <HorizontalLayout>
-            <CaptionValue
-              className='card-plume'
-              caption='ID:'
-              value={vizItemSourceId}
-            />
-            <CaptionValue
-              className='card-plume'
-              caption='Orbit'
-              value={orbit}
-            />
-          </HorizontalLayout>
-
-          <HorizontalLayout>
-            {/* eslint-disable-next-line prettier/prettier */}
-            <a
-              href={tiffUrl}
-              target='_blank'
-              rel='noreferrer'
-              className='card-download-link'
-            >
-              <Typography variant='caption' component='div'>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  Download the Tiff File <DownloadIcon fontSize='small' />
-                </div>
-              </Typography>
-            </a>
-          </HorizontalLayout>
-          <Divider></Divider>
-          <HorizontalLayout>
-            <CaptionValue
-              className='card-plume'
-              caption='Location'
-              value={location}
-            />
-            <CaptionValue
-              className='card-plume'
-              caption='UTC Time Observed:'
-              value={utcTimeObserved}
-            />
-          </HorizontalLayout>
-          <HorizontalLayout>
-            <CaptionValue
-              className='card-plume'
-              caption='Max Plume Concentration:'
-              value={maxPlumeConcentration + ' ppm m'}
-            />
-            <CaptionValue
-              className='card-plume'
-              caption='Concentration Uncertainity:'
-              value={concentrationUncertanity + ' ppm m'}
-            />
-          </HorizontalLayout>
-          <HorizontalLayout>
-            <CaptionValue
-              className='card-plume'
-              caption='Longitude (Max Conc):'
-              value={Number(longitudeOfMaxConcentration).toFixed(3)}
-            />
-            <CaptionValue
-              className='card-plume'
-              caption='Latitude (Max Conc):'
-              value={Number(latitudeOfMaxConcentration).toFixed(3)}
-            />
-          </HorizontalLayout>
-        </CardContent>
-      </Box>
-    </HighlightableCard>
-  );
-}
+    );
+  }
+);
