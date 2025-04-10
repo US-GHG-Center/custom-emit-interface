@@ -1,6 +1,3 @@
-# interfaces-template
-
-Template for the custom interfaces
 
 ## Pre requisities
 
