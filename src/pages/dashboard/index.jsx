@@ -240,9 +240,18 @@ export function Dashboard({
           ></MapViewPortComponent>
           <MarkerFeature
             getPopupContent={getPopupContent}
-            vizItems={Object.keys(filteredVizItems).map(
-              (item) => filteredVizItems[item]
-            )}
+            items={Object.keys(filteredVizItems).map((item) => {
+              const v = filteredVizItems[item];
+              return {
+                coordinates: {
+                  lat: v?.lat,
+                  lon: v?.lon,
+                },
+                location: v?.plumeProperties?.location,
+                utcTimeObserved: v?.plumeProperties?.utcTimeObserved,
+                id: item,
+              };
+            })}
             onSelectVizItem={handleSelectedVizItem}
           ></MarkerFeature>
           {showCoverage && <CoverageLayers coverage={coverageFeatures} />}

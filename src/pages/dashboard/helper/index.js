@@ -68,16 +68,13 @@ export function filterByDateRange(indexedData, dateRange) {
   };
 }
 
-export const getPopupContent = (vizItem) => {
-  const { plumeProperties } = vizItem;
-  const { location, utcTimeObserved, plumeId } = plumeProperties;
+export const getPopupContent = (item) => {
+  const { location, utcTimeObserved, id } = item;
   return `
         <table style="line-height: 1.4; font-size: 11px;">
-            <tr><td><strong>ID:</strong></td><td>${plumeId}</td></tr>
+            <tr><td><strong>ID:</strong></td><td>${id}</td></tr>
             <tr><td><strong>Location:</strong></td><td>${location}</td></tr>
             <tr><td><strong>Date:</strong></td><td>${utcTimeObserved}</td></tr>
         </table>
     `;
 };
-
-

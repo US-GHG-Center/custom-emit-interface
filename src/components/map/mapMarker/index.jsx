@@ -1,22 +1,42 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMapbox } from '../../../context/mapContext';
 import './index.css';
 import { ZOOM_LEVEL_MARGIN } from '../utils/constants';
 
-export const MarkerFeature = ({
-  vizItems,
-  onSelectVizItem,
-  getPopupContent,
-}) => {
+/**
+ * MarkerFeature React component for rendering interactive Mapbox markers.
+ *
+ * Displays custom-styled markers on a Mapbox map. Each marker represents a
+ * data item with coordinates and shows a popup with info on hover.
+ *
+ * @param {Object[]} items - Array of marker data objects.
+ * @param {string} items[].id - Unique ID for the marker.
+ * @param {Object} items[].coordinates - Coordinate object containing lat/lon.
+ * @param {number} items[].coordinates.lat - Latitude for the marker.
+ * @param {number} items[].coordinates.lon - Longitude for the marker.
+ * @param {Function} onSelectVizItem - Callback when a marker is clicked. Passes the marker ID.
+ * @param {Function} getPopupContent - Callback that returns popup HTML string for a given item.
+ *
+ * @returns {null} This component renders directly on the map using Mapbox API.
+ */
+export const MarkerFeature = ({ items, onSelectVizItem, getPopupContent }) => {
   const { map } = useMapbox();
   const [markersVisible, setMarkersVisible] = useState(true);
   const markersRef = useRef([]);
-
+  /**
+   * Creates a custom Mapbox marker element and adds popup + event handlers.
+   *
+   * @param {Object} item - Single marker object.
+   * @param {string} item.id - Unique identifier for the marker.
+   * @param {Object} item.coordinates - Lat/Lon values.
+   * @returns {Object} Marker, popup, and element metadata for tracking.
+   */
   // Memoized marker creation function
   const createMarker = useCallback(
     (item) => {
-      const { lon, lat, id } = item;
+      const { coordinates, id } = item;
+      const { lon, lat } = coordinates;
       const markerColor = '#00b7eb';
 
       // Create marker element
@@ -69,7 +89,7 @@ export const MarkerFeature = ({
 
   // Markers management effect
   useEffect(() => {
-    if (!map || !vizItems.length) return;
+    if (!map || !items?.length) return;
 
     // Clean up existing markers
     markersRef.current.forEach(({ marker, element, popup }) => {
@@ -79,7 +99,7 @@ export const MarkerFeature = ({
     });
 
     // Create and add new markers
-    const newMarkers = vizItems.map(createMarker);
+    const newMarkers = items.map(createMarker);
     newMarkers.forEach(({ marker }) => marker.addTo(map));
 
     // Update markers visibility and ref
@@ -96,7 +116,7 @@ export const MarkerFeature = ({
         popup?.remove();
       });
     };
-  }, [vizItems, map, createMarker, markersVisible]);
+  }, [items, map, createMarker, markersVisible]);
 
   // Zoom-based visibility effect
   useEffect(() => {
@@ -115,7 +135,13 @@ export const MarkerFeature = ({
 
   return null;
 };
-
+/**
+ * Returns an SVG string representing the visual icon for the marker.
+ *
+ * @param {string} color - Fill color for the marker.
+ * @param {string} [strokeColor='#000000'] - Optional stroke color.
+ * @returns {string} SVG string to be injected into the DOM.
+ */
 const getMarkerSVG = (color, strokeColor = '#000000') => {
   return `
     <svg fill="${color}" width="30px" height="30px" viewBox="-51.2 -51.2 614.40 614.40" xmlns="http://www.w3.org/2000/svg">
