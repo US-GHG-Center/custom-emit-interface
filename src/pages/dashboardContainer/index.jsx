@@ -60,10 +60,7 @@ export function DashboardContainer() {
 
         // transform the data
         const { data } = await transformMetadata(metadata, stacData);
-        // console.log({ data });
         setPlumes(data);
-        // setPlumes(Plumes);
-        // setPlumes(twoData);
 
         // remove loading
         setLoadingData(false);
