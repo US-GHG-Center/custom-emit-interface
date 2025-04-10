@@ -6,6 +6,21 @@ import {
   getSourceId,
 } from '@components';
 
+/**
+ * Component responsible for rendering methane plume layers on the map.
+ * It handles dynamic loading, highlighting, visibility toggling, and removal of layers.
+ *
+ * @component
+ * @param {Object} props
+ * @param {number} props.VMIN - Minimum visualization value for colormap scaling.
+ * @param {number} props.VMAX - Maximum visualization value for colormap scaling.
+ * @param {string} props.colormap - Colormap name used for raster rendering.
+ * @param {string} props.assets - Name of the asset (raster band) used for visualization.
+ * @param {Array<Plume>} props.vizItems - Array of plume items to render.
+ * @param {string} props.highlightedLayer - ID of the plume currently hovered.
+ * @param {function} props.onHoverOverLayer - Callback triggered when a plume layer is hovered.
+ */
+
 function Plumes({
   VMIN,
   VMAX,
@@ -22,7 +37,10 @@ function Plumes({
   useEffect(() => {
     setPlumeLayers(vizItems);
   }, [vizItems]);
-
+  /**
+   * Toggles visibility of the raster layer when a polygon is clicked.
+   * @param {string} layerId - The ID of the layer to toggle.
+   */
   const handleClickedOnLayer = (layerId) => {
     if (layerId) {
       const rasterId = getLayerId('raster', layerId);
@@ -40,6 +58,10 @@ function Plumes({
       }
     }
   };
+  /**
+   * Removes raster, polygon, and fill layers and their sources from the map.
+   * @param {string} vizItemId - ID of the plume item to remove.
+   */
   const handleRemoveLayer = (vizItemId) => {
     const rasterSourceId = getSourceId('raster', vizItemId);
     const rasterLayerId = getLayerId('raster', vizItemId);

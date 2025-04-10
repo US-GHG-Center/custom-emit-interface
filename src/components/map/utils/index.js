@@ -1,33 +1,38 @@
 import * as turf from '@turf/turf';
-/*
-      Get id for source
-
-      @param {string} idx   - Name/identification of source
-*/
+/**
+ * Generates a unique source ID string.
+ *
+ * @param {string} layer - Layer prefix (e.g. "raster", "polygon")
+ * @param {string} idx - Unique identifier for the feature/item
+ * @returns {string} Combined source ID
+ */
 export const getSourceId = (layer, idx) => {
   return layer + '-' + idx;
 };
 
-/*
-      Get id for layer
-
-      @param {string} idx    - Name/identification of layer
-*/
+/**
+ * Generates a unique layer ID string.
+ *
+ * @param {string} layer - Layer prefix (e.g. "raster", "polygon")
+ * @param {string} idx - Unique identifier for the feature/item
+ * @returns {string} Combined layer ID
+ */
 export const getLayerId = (layer, idx) => {
   return layer + '-' + idx;
 };
 
-/*
-      Add source and layer on map
-      @param {map object} map - instance of map 
-      @param {number} VMIN - minimum value of the color index
-      @param {number} VMAX - maximum value of the color index
-      @param {string} colormap - name of the colormap
-      @param {string} assets - name of the asset of the color
-      @param {STACItem} feature - collection of features to add on map 
-      @param {string} sourceId - id of the source to add
-      @param {string} layerId - id of the layer to add source on 
-*/
+/**
+ * Adds a raster tile source and corresponding raster layer to the map.
+ *
+ * @param {mapboxgl.Map} map - The Mapbox map instance
+ * @param {number} VMIN - Minimum value for raster color scaling
+ * @param {number} VMAX - Maximum value for raster color scaling
+ * @param {string} colormap - Name of the colormap to apply
+ * @param {string} assets - STAC asset name to fetch tiles from
+ * @param {STACItem} feature - STAC item with ID, collection, and bbox
+ * @param {string} sourceId - Unique ID for the raster source
+ * @param {string} layerId - Unique ID for the raster layer
+ */
 export const addSourceLayerToMap = (
   map,
   VMIN,
@@ -76,33 +81,37 @@ export const addSourceLayerToMap = (
   });
 };
 
-/*
-      Check if layer exists on map
-      @param {map object} map - instance of map 
-      @param {string} idx    - Name/identification of layer
-     
-*/
+/**
+ * Checks if a Mapbox layer already exists.
+ *
+ * @param {mapboxgl.Map} map - Map instance
+ * @param {string} layerId - ID of the layer
+ * @returns {boolean} True if layer exists
+ */
 export function layerExists(map, layerId) {
   return !!map.getLayer(layerId);
 }
 
-/*
-      Check if source exists on map
-      @param {map object} map - instance of map 
-      @param {string} idx    - Name/identification of source
-     
-*/
+/**
+ * Checks if a Mapbox source already exists.
+ *
+ * @param {mapboxgl.Map} map - Map instance
+ * @param {string} sourceId - ID of the source
+ * @returns {boolean} True if source exists
+ */
 export function sourceExists(map, sourceId) {
   return !!map.getSource(sourceId);
 }
 
-/*
-      Add source and layer of on map
-      @param {map object} map - instance of map 
-      @param {STACItem} feature -  polygon features to add on map 
-      @param {string} polygonSourceId - id of the polygon source to add
-      @param {string} polygonLayerId - id of the polygon layer to add source on 
-*/
+/**
+ * Adds a vector line source and layer to draw polygon outlines.
+ *
+ * @param {mapboxgl.Map} map - Mapbox instance
+ * @param {Feature} feature - GeoJSON polygon feature
+ * @param {string} polygonSourceId - Unique source ID
+ * @param {string} polygonLayerId - Unique layer ID
+ * @param {number} width - Width of the line
+ */
 export const addSourcePolygonToMap = (
   map,
   feature,
@@ -131,13 +140,14 @@ export const addSourcePolygonToMap = (
     },
   });
 };
-/*
-      Add source and layer of polygon fill layer on map
-      @param {map object} map - instance of map 
-      @param {STACItem} feature -  polygon features to add on map 
-      @param {string} polygonSourceId - id of the polygon source to add
-      @param {string} polygonLayerId - id of the polygon layer to add source on 
-*/
+/**
+ * Adds a transparent fill layer over a polygon. Used for capturing interactions (hover/click).
+ *
+ * @param {mapboxgl.Map} map - Map instance
+ * @param {Feature} feature - Polygon feature
+ * @param {string} polygonFillSourceId - Source ID
+ * @param {string} polygonFillLayerId - Layer ID
+ */
 export const addFillPolygonToMap = (
   map,
   feature,
@@ -167,6 +177,15 @@ export const addFillPolygonToMap = (
   });
 };
 
+/**
+ * Adds a coverage polygon source and fill layer.
+ * If map style hasn't loaded, defers execution until ready.
+ *
+ * @param {mapboxgl.Map} map - Map instance
+ * @param {string} polygonSourceId - Source ID
+ * @param {string} polygonLayerId - Layer ID
+ * @param {FeatureCollection} polygonFeature - GeoJSON coverage data
+ */
 export const addCoveragePolygon = (
   map,
   polygonSourceId,
@@ -211,6 +230,14 @@ export const addCoveragePolygon = (
     }
   }
 };
+
+/**
+ * Checks whether a given GeoJSON feature is within current map bounds.
+ *
+ * @param {Feature} feature - GeoJSON feature (usually a plume polygon)
+ * @param {LngLatBounds} bounds - Mapbox LngLatBounds object
+ * @returns {boolean} True if intersects with visible map bounds
+ */
 
 export function isFeatureWithinBounds(feature, bounds) {
   // Create a bounding box feature from the map bounds

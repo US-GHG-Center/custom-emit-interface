@@ -5,6 +5,18 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Tooltip from '@mui/material/Tooltip';
 
+/**
+ * VisibilityIconComp
+ *
+ * A React component rendered inside a Mapbox control.
+ * It toggles the visibility of all raster layers on the map.
+ *
+ * @param {Object} props
+ * @param {mapboxgl.Map} props.map - The Mapbox map instance.
+ * @param {Function} props.onClickHandler - Callback to notify external state of visibility toggle.
+ *
+ * @returns {JSX.Element}
+ */
 function VisibilityIconComp({ map, onClickHandler }) {
   const [isVisible, setIsVisible] = useState(true);
   let rasterLayersCurrentVisibility = useRef(); // key[string(layer-id)]: string(previous visibility status)
@@ -51,14 +63,29 @@ function VisibilityIconComp({ map, onClickHandler }) {
     </Tooltip>
   );
 }
-
+/**
+ * LayerVisibilityControl Class
+ *
+ * A custom Mapbox control that renders a visibility toggle icon
+ * to show/hide all raster layers on the map.
+ * Built using React and mounted using `createRoot`.
+ */
 export class LayerVisibilityControl {
+  /**
+   * @param {Function} onHideLayerClick - Callback triggered when visibility is toggled.
+   */
   constructor(onHideLayerClick) {
     this._onClick = onHideLayerClick;
     this.root = null;
     this._map = null;
   }
-
+  /**
+   * Called by Mapbox GL when this control is added to the map.
+   * Creates the DOM container and mounts the React component.
+   *
+   * @param {mapboxgl.Map} map - The map instance.
+   * @returns {HTMLElement} - The control’s DOM element.
+   */
   onAdd = (map) => {
     this._map = map;
     this._container = document.createElement('div');
@@ -70,7 +97,10 @@ export class LayerVisibilityControl {
     this.root = root;
     return this._container;
   };
-
+  /**
+   * Called when the control is removed from the map.
+   * Unmounts the React root and cleans up DOM references.
+   */
   onRemove = () => {
     setTimeout(() => {
       try {

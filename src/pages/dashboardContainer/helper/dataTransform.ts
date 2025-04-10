@@ -1,3 +1,13 @@
+/**
+ * Helper functions for transforming metadata and coverage data for visualization.
+ * Includes:
+ *  - reverse geocoding plume coordinates
+ *  - mapping metadata features to STAC items
+ *  - processing coverage polygons with rounded coordinates
+ *  - indexing coverage data by time
+ *
+ * @module dataTransform
+ */
 import {
   Features,
   Metadata,
@@ -18,6 +28,15 @@ import {
   fetchLocationFromEndpoint,
 } from '../../../services/api';
 
+/**
+ * Performs reverse geocoding for a given feature based on its plume ID.
+ * Falls back to coordinate lookup if location is not in the provided map.
+ *
+ * @async
+ * @param {Record<string, string>} allLocation - A lookup map of plume ID to location.
+ * @param {Features} feature - Metadata feature to geocode.
+ * @returns {Promise<string>} - The resolved location string.
+ */
 const reverseGeocoding = async (
   allLocation: Record<string, string>,
   feature: Features
@@ -34,6 +53,15 @@ const reverseGeocoding = async (
   }
 };
 
+/**
+ * Transforms metadata and STAC item information into plume objects,
+ * performing location resolution and geometry extraction.
+ *
+ * @async
+ * @param {Metadata} metadata - Metadata for all the items.
+ * @param {STACItem[]} stacData - Array of STAC items .
+ * @returns {Promise<{ data: Record<string, Plume> }>} - A plume map keyed by STAC item ID.
+ */
 export const transformMetadata = async (
   metadata: Metadata,
   stacData: STACItem[]
@@ -133,6 +161,13 @@ const roundCoordinates = (geometry: Geometry) => {
   return geometry;
 };
 
+/**
+ * Creates a date-sorted, indexed coverage GeoJSON dataset.
+ * Useful for efficient time-based filtering.
+ *
+ * @param {CoverageData} coverageData - Full coverage dataset.
+ * @returns {CoverageGeoJsonData} - FeatureCollection sorted by `start_time`.
+ */
 export function createIndexedCoverageData(coverageData: CoverageData) {
   const coverageFeatures: CoverageFeature[] = coverageData.features;
   const processedCoverages = coverageFeatures.map((feature) => {

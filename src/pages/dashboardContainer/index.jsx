@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Dashboard, EmitDashboard } from '../dashboard/index.jsx';
-import { Plumes } from '../../assets/dataset/testData.js';
+import { Dashboard } from '../dashboard/index.jsx';
+
 import {
   fetchCollectionMetadata,
   fetchAllFromSTACAPI,
@@ -11,6 +11,18 @@ import {
 import { transformMetadata } from './helper/dataTransform.ts';
 import { createIndexedCoverageData } from './helper/dataTransform.ts';
 
+/**
+ * DashboardContainer Component
+ *
+ * Responsible for initializing and loading required data for the Dashboard.
+ * This includes:
+ *  - Fetching STAC metadata and transforming it to internal plume structure.
+ *  - Fetching and indexing coverage data.
+ *  - Managing map zoom state from URL query parameters.
+ *
+ * @component
+ * @returns {JSX.Element} Rendered Dashboard component
+ */
 export function DashboardContainer() {
   // get the query params
   const [searchParams] = useSearchParams();
@@ -38,7 +50,6 @@ export function DashboardContainer() {
         // // use this url to find out the data frequency of the collection
         const collectionMetadata = await fetchCollectionMetadata(collectionUrl);
         setCollectionMeta(collectionMetadata);
-        // console.log({ coverage });
 
         const metaDataEndpoint = `${process.env.REACT_APP_METADATA_ENDPOINT}`;
         const stacAPIEndpoint = `${process.env.REACT_APP_STAC_API_URL}`;
@@ -47,12 +58,13 @@ export function DashboardContainer() {
         // get all the stac Items
         const stacData = await fetchAllFromSTACAPI(stacAPIEndpoint);
 
-        // console.log({ metadata, stacData });
         // transform the data
         const { data } = await transformMetadata(metadata, stacData);
         // console.log({ data });
         setPlumes(data);
         // setPlumes(Plumes);
+        // setPlumes(twoData);
+
         // remove loading
         setLoadingData(false);
       } catch (error) {

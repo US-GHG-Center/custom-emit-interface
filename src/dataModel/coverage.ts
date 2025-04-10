@@ -1,3 +1,5 @@
+//Data model for coverages
+
 export interface Geometry {
   type: string;
   coordinates: number[][][];

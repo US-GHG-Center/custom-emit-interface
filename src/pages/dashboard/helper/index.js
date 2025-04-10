@@ -80,4 +80,4 @@ export const getPopupContent = (vizItem) => {
     `;
 };
 
-// Usage example
+

@@ -1,20 +1,31 @@
 import { useState } from 'react';
 import { Slider, Typography, Box } from '@mui/material';
 import moment from 'moment';
-
-/*
-      Filter stacItem based on the date range
-
-      @param {STACItem} vizItems   - An array of STACitems from which filtering is to be done
-      @param {function} onFilteredVizItems -   with filtered vizItems when date range is selected
-      
-*/
+/**
+ * FilterByDate Component
+ *
+ * Provides an interactive slider to filter STAC items by observation date.
+ * Displays the selected date range and emits filtered results on commit.
+ *
+ * @param {Object} props
+ * @param {Array<Object>} props.vizItems - Array of STACItems to filter.
+ * @param {Function} props.onFilteredItems - Callback with filtered STACItems based on selected date range.
+ * @param {Function} props.onDateChange - Callback to emit selected date range (in milliseconds).
+ *
+ * @returns {JSX.Element}
+ */
 
 export function FilterByDate({ vizItems, onFilteredItems, onDateChange }) {
   const minDate = moment('2022-08-09').valueOf();
   const maxDate = moment().valueOf();
   const [dateRange, setDateRange] = useState([minDate, maxDate]);
 
+  /**
+   * Handles slider commit: filters data and emits range + results.
+   *
+   * @param {Event}
+   * @param {[number, number]} dateRange - Selected timestamp range
+   */
   const handleSliderChange = (_, dateRange) => {
     onDateChange(dateRange);
     const filteredVizItems = vizItems.filter((vizItem) => {

@@ -8,6 +8,24 @@ import {
   getLayerId,
 } from '../utils/index';
 
+/**
+ * VisualizationLayer
+ *
+ * A single visualization unit that adds raster and polygon layers to the Mapbox map
+ * based on a `vizItem`.VizItem is a single STAC Item. Also attaches interaction handlers for click and hover events.
+ *
+ * @param {Object} props
+ * @param {number} props.VMIN - Minimum visualization value for color scale.
+ * @param {number} props.VMAX - Maximum visualization value for color scale.
+ * @param {string} props.colormap - Colormap name used for raster styling.
+ * @param {string} props.assets - STAC asset key for the raster layer.
+ * @param {Object} props.vizItem - A single plume visualization item (with geometry + metadata)(STAC Item+ metadata).
+ * @param {Function} props.onClickedOnLayer - Callback when the polygon is clicked.
+ * @param {Function} props.onHoverOverLayer - Callback when hovered (or hover is cleared).
+ * @param {Function} props.registerEventHandler - Function to register event handlers for cleanup.
+ *
+ * @returns {null}
+ */
 export const VisualizationLayer = ({
   VMIN,
   VMAX,
@@ -21,6 +39,7 @@ export const VisualizationLayer = ({
   const { map } = useMapbox();
   const [vizItemId, setVizItemId] = useState('');
 
+  // Extract the visualization ID once the item is received
   useEffect(() => {
     const id = vizItem?.id || vizItem[0]?.id;
     setVizItemId(id);
@@ -35,7 +54,7 @@ export const VisualizationLayer = ({
       properties: vizItem?.plumeProperties,
       type: 'Feature',
     };
-
+    // Unique IDs for all source/layer types
     const rasterSourceId = getSourceId('raster', vizItemId);
     const rasterLayerId = getLayerId('raster', vizItemId);
     const polygonSourceId = getSourceId('polygon', vizItemId);
@@ -96,6 +115,27 @@ export const VisualizationLayer = ({
   return null;
 };
 
+/**
+ * VisualizationLayers
+ *
+ * Handles rendering and syncing of all visualization layers with the current
+ * map viewport and dataset (`vizItems`). Dynamically adds or removes layers as needed.
+ *
+ * @param {Object} props
+ * @param {number} props.VMIN - Min value for color scaling.
+ * @param {number} props.VMAX - Max value for color scaling.
+ * @param {string} props.colormap - Colormap name.
+ * @param {string} props.assets - Raster asset type for the collection.
+ * @param {Array} props.vizItems - List of visualization items currently in view. Array of (STAC + their metadata)
+ * @param {string|null} props.highlightedLayer - ID of currently highlighted plume.
+ * @param {Function} props.onHoverOverLayer - Hover callback.
+ * @param {Function} props.onClickedOnLayer - Click callback.
+ * @param {Function} props.handleRemoveLayer - Called when a layer is removed. Define
+ *                  action for layers that goes out of viewport.
+ *
+ * @returns {JSX.Element} Rendered `VisualizationLayer` components.
+ */
+
 export const VisualizationLayers = ({
   VMIN,
   VMAX,
@@ -110,7 +150,9 @@ export const VisualizationLayers = ({
   const { map } = useMapbox();
 
   const [layersToAdd, setLayersToAdd] = useState([]);
+
   const eventHandlerRegistryRef = useRef({});
+  // Utility to track and retrieve event handlers
   const registerEventHandler = (layerId, eventType, handler) => {
     if (!eventHandlerRegistryRef.current[layerId]) {
       eventHandlerRegistryRef.current[layerId] = {};
@@ -149,7 +191,7 @@ export const VisualizationLayers = ({
       removeEventListeners(vizItemId);
     });
   };
-
+  // Watch for changes in vizItems and sync map layers accordingly
   useEffect(() => {
     const processLayers = () => {
       try {
@@ -181,15 +223,15 @@ export const VisualizationLayers = ({
           removeLayers(layersToRemove);
         }
         // This is for console logging purpose only
-        const layers = map.getStyle().layers;
-        const val = layers.filter((item) => item?.id?.includes('raster-'));
-        console.log({ finalLayers: val });
+        // const layers = map.getStyle().layers;
+        // const val = layers.filter((item) => item?.id?.includes('raster-'));
+        // console.log({ finalLayers: val });
 
-        const listeners = map._listeners;
-        console.log({
-          all: listeners,
-          registry: eventHandlerRegistryRef.current,
-        });
+        // const listeners = map._listeners;
+        // console.log({
+        //   all: listeners,
+        //   registry: eventHandlerRegistryRef.current,
+        // });
       } catch (error) {
         console.warn('Error processing map layers:', error);
       }

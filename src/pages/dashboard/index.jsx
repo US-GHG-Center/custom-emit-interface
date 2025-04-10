@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 
-// TODO : see api call for data getting of stac and gpl both
 import {
   MainMap,
   MarkerFeature,
@@ -40,6 +39,24 @@ const HorizontalLayout = styled.div`
   margin: 12px;
 `;
 
+/**
+ * Dashboard Component
+ *
+ * This is the main container for the EMIT Methane Plume Viewer.
+ * It integrates map rendering, plume data visualization, filtering, and UI controls.
+ *
+ * @component
+ * @param {Object} props
+ * @param {Record<string, Plume>} props.plumes - All available plume items (ID-indexed and sorted).
+ * @param {Object} props.collectionMeta - STAC collection metadata, used for colormap and rescale config.
+ * @param {CoverageGeoJsonData} props.coverage - GeoJSON coverage data.
+ * @param {Array<number>} props.zoomLocation - [lon, lat] to zoom to.
+ * @param {Function} props.setZoomLocation - Setter to update zoom location.
+ * @param {number|null} props.zoomLevel - Optional zoom level to apply.
+ * @param {Function} props.setZoomLevel - Setter to update zoom level.
+ * @param {string} props.collectionId - Collection ID from STAC.
+ * @param {boolean} props.loadingData - Whether the dashboard is still loading its data.
+ */
 export function Dashboard({
   plumes,
   collectionMeta,

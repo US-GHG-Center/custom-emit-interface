@@ -66,7 +66,22 @@ const CaptionValue = ({ caption, value, className }) => {
     </div>
   );
 };
-
+/**
+ * VisualizationItemCard
+ *
+ * Displays detailed plume information in a card layout with preview image, metadata,
+ * and interaction handlers for hover and selection.
+ *
+ * @param {Object} props
+ * @param {Object} props.vizItem - Plume STAC item object.
+ * @param {string} props.collectionId - ID of the STAC collection.
+ * @param {Function} props.onSelectVizLayer - Callback triggered when card is clicked.
+ * @param {Function} props.onHoverOnVizLayer - Callback triggered on mouse enter/leave.
+ * @param {string} props.hoveredVizItemId - ID of the currently hovered item (used for highlight sync).
+ * @param {Ref} ref - React ref to support scroll-to or measurement.
+ *
+ * @returns {JSX.Element}
+ */
 export const VisualizationItemCard = forwardRef(
   (
     {

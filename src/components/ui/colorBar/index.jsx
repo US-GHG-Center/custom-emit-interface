@@ -7,21 +7,26 @@ import * as d3 from 'd3';
 
 import './index.css';
 
-/*
-      Component to create colorbar
-      
-      @param {label} label - label to be displayed 
-      @param {number} VMIN - minimum value of the color index
-      @param {number} VMAX - maximum value of the color index
-      @param {number} STEPS - no of Steps  
-      @param {string} colormap - name of the colormap
-     
-*/
+/**
+ * ColorBar Component
+ *
+ * Renders a horizontal D3-based color gradient scale with a caption label.
+ * Used to visually indicate the color mapping for  plume concentrations.
+ *
+ * @param {Object} props
+ * @param {string} props.label - Descriptive label shown below the colorbar (e.g., units).
+ * @param {number} props.VMIN - Minimum value of the colormap scale.
+ * @param {number} props.VMAX - Maximum value of the colormap scale.
+ * @param {number} props.STEPS - Number of label ticks/steps on the bar.
+ * @param {string} props.colormap - Name of the colormap (e.g., 'plasma', 'viridis').
+ *
+ * @returns {JSX.Element}
+ */
 
 export const ColorBar = ({ label, VMIN, VMAX, STEPS, colormap }) => {
   const colorBarScale = useRef();
   useEffect(() => {
-    const STEP = Math.floor(((VMAX - VMIN) / STEPS));
+    const STEP = Math.floor((VMAX - VMIN) / STEPS);
     const colorbar = d3.select(colorBarScale.current);
     createColorbar(colorbar, VMIN, VMAX, STEP, colormap);
 

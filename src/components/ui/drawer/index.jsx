@@ -59,6 +59,23 @@ const HorizontalLayout = styled.div`
   margin-bottom: 5px;
 `;
 
+/**
+ * PersistentDrawerRight
+ *
+ * A right-side drawer that displays selected plume visualization items as cards.
+ * Highlights the hovered item and auto-scrolls to bring it into view.
+ *
+ * @param {Object} props
+ * @param {boolean} props.open - Whether the drawer is open.
+ * @param {Function} props.setOpen - Setter function to control drawer visibility.
+ * @param {Array} props.selectedVizItems - Array of plume items currently in the viewport.
+ * @param {string} props.hoveredVizLayerId - ID of the plume currently hovered on the map.
+ * @param {string} props.collectionId - ID of the STAC collection
+ * @param {Function} props.onSelectVizLayer - Called when a card is clicked.
+ * @param {Function} props.onHoverOnVizLayer - Called on hover enter/leave.
+ *
+ * @returns {JSX.Element}
+ */
 export function PersistentDrawerRight({
   open,
   setOpen,
@@ -92,8 +109,6 @@ export function PersistentDrawerRight({
       });
     }
   }, [hoveredVizLayerId]);
-
-  // console.log({ selectedVizItems });
 
   return (
     <Box sx={{ display: 'flex' }}>

@@ -3,6 +3,21 @@ import { useMapbox } from '../../../context/mapContext';
 import { isFeatureWithinBounds } from '../utils/index';
 import { ZOOM_LEVEL_MARGIN } from '../utils/constants';
 
+/**
+ * MapViewPortComponent
+ *
+ * Automatically filters and sets visualization layers (e.g., plumes)
+ * that are within the visible viewport of the map. Also listens for zoom
+ * and drag changes to dynamically update visible layers.
+ *
+ * @param {Object} props
+ * @param {Object<string, any>} props.filteredVizItems - Dictionary of filtered visualization items.
+ * @param {Function} props.setVisualizationLayers - Function to update visualization layers in view.
+ * @param {Function} props.handleZoomOutEvent - Callback for when zoom level drops below threshold.
+ * @param {boolean} props.fromSearch - Flag to disable viewport filtering after a search action.
+ *
+ * @returns {null} This is a non-visual, behavior-only component.
+ */
 export function MapViewPortComponent({
   filteredVizItems,
   setVisualizationLayers,
@@ -11,7 +26,7 @@ export function MapViewPortComponent({
 }) {
   const { map } = useMapbox();
   const [initialValues, setInitialValues] = useState(filteredVizItems);
-
+  // Update internal list of filtered features when props change
   useEffect(() => {
     if (filteredVizItems) {
       const values = Object.values(filteredVizItems);
@@ -21,6 +36,12 @@ export function MapViewPortComponent({
     }
   }, [filteredVizItems]);
 
+  /**
+   * Filters features that fall within the current map bounds.
+   *
+   * @param {mapboxgl.Map} map - Mapbox instance
+   * @param {Array} features - Array of features with polygonGeometry
+   */
   const findAllLayersInsideViewport = (map, initialValues) => {
     const bounds = map.getBounds();
     const itemsInsideZoomedRegion = initialValues?.filter((value) =>
@@ -58,7 +79,6 @@ export function MapViewPortComponent({
       }
     };
 
-    // Wait for style to load before adding listeners
     map.on('zoomend', handleViewportChange);
     map.on('dragend', handleViewportChange);
     // map.on('moveend', handleViewportChange);
