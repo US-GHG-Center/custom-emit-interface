@@ -40,7 +40,7 @@ jobs:
 
       - name: Validate required variables and secrets
         run: |
-          missing_vars = ()
+          missing_vars=()
           # Check for required variables 
           [ -z "${{ vars.PUBLIC_URL }}" ] && missing_vars+=("vars.PUBLIC_URL")
           [ -z "${{ vars.REACT_APP_STAC_API_URL }}" ] && missing_vars+=("vars.REACT_APP_STAC_API_URL")
