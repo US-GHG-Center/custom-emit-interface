@@ -79,7 +79,7 @@ jobs:
           REACT_APP_MAPBOX_TOKEN: ${{ secrets.REACT_APP_MAPBOX_ACCESS_TOKEN }}
           REACT_APP_BASEMAP_STYLES_MAPBOX_ID: ${{ secrets.REACT_APP_BASEMAP_STYLES_MAPBOX_ID }}
           REACT_APP_GEOAPIFY_APIKEY: ${{secrets.REACT_APP_GEOAPIFY_APIKEY}}
-          PUBLIC_URL: ${{ vars.PUBLIC_URL }}pr-preview-${{ github.event.number }}/
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}pr-preview-${{ github.event.number }}
           REACT_APP_STAC_API_URL: ${{ vars.REACT_APP_STAC_API_URL }}
           REACT_APP_RASTER_API_URL: ${{ vars.REACT_APP_RASTER_API_URL }}
           REACT_APP_BASE_STAC_API_URL: ${{ vars.REACT_APP_BASE_STAC_API_URL }}
@@ -88,11 +88,10 @@ jobs:
           REACT_APP_COVERAGE_URL: ${{ vars.REACT_APP_COVERAGE_URL }}
           DEPLOYMENT_BUCKET: ${{ vars.DEPLOYMENT_BUCKET }}
         run: |
-          echo "🚀 PUBLIC_URL=$PUBLIC_URL"
           yarn
-          PUBLIC_URL=$PUBLIC_URL CI=false yarn build
-          aws s3 sync build/ s3://${{ env.DEPLOYMENT_BUCKET }}${{ env.PUBLIC_URL }}
-          COMMENT+="- 🛰️ PR Preview: ${{ vars.PREVIEW_WEB_DISTRIBUTION_URL }}${{ env.PUBLIC_URL }} \n \n"
+          CI=false yarn build
+          aws s3 sync build/ s3://${{ env.DEPLOYMENT_BUCKET }}${{ env.PUBLIC_URL }}pr-preview-${{ github.event.number }}
+          COMMENT+="- 🛰️ PR Preview: ${{ vars.PREVIEW_WEB_DISTRIBUTION_URL }}${{ env.PUBLIC_URL }}pr-preview-${{ github.event.number }} \n \n"
           echo "COMMENT=${COMMENT}" >> $GITHUB_ENV
 
       - name: Add/update PR comment
