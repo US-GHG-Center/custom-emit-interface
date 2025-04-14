@@ -73,7 +73,6 @@ jobs:
           role-to-assume: ${{ secrets.DEPLOYMENT_ROLE_ARN }}
           role-session-name: ${{ github.repository_owner}}
           aws-region: us-west-2
-
       - name: Build and deploy
         working-directory: ./
         env:
@@ -88,12 +87,12 @@ jobs:
           REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT: ${{ vars.REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT }}
           REACT_APP_COVERAGE_URL: ${{ vars.REACT_APP_COVERAGE_URL }}
           DEPLOYMENT_BUCKET: ${{ vars.DEPLOYMENT_BUCKET }}
-
         run: |
+          echo "🚀 PUBLIC_URL=$PUBLIC_URL"
           yarn
-          PUBLIC_URL=${{ env.PUBLIC_URL }} CI=false yarn build
-          aws s3 sync build/ s3://${{ env.DEPLOYMENT_BUCKET }}${{ vars.PUBLIC_URL }}pr-preview-${{ github.event.number }}
-          COMMENT+="- 🛰️ Pr-Preview on : ${{ vars.PREVIEW_WEB_DISTRIBUTION_URL }}${{ vars.PUBLIC_URL }}pr-preview-${{ github.event.number }} \n \n"
+          PUBLIC_URL=$PUBLIC_URL CI=false yarn build
+          aws s3 sync build/ s3://${{ env.DEPLOYMENT_BUCKET }}${{ env.PUBLIC_URL }}
+          COMMENT+="- 🛰️ PR Preview: ${{ vars.PREVIEW_WEB_DISTRIBUTION_URL }}${{ env.PUBLIC_URL }} \n \n"
           echo "COMMENT=${COMMENT}" >> $GITHUB_ENV
 
       - name: Add/update PR comment
