@@ -1,4 +1,4 @@
-name: Build and Deploky emit
+name: Build and Deploy emit
 on:
   workflow_dispatch:
   push:
@@ -15,7 +15,7 @@ jobs:
       - name: Set the environment based on the branch
         id: define_environment
         run: |
-          if["${{github.ref}}" = "refs/heads/main"];then
+          if["${{github.ref}}" = "refs/heads/main"]; then
             echo "target_branch=main" >> $GITHUB_OUTPUT
             echo "env_name=Production" >>  $GITHUB_OUTPUT
           elif ["${{github.ref}}" = "refs/head/develop"]; then
