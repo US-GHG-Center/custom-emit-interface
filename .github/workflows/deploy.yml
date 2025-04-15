@@ -15,12 +15,12 @@ jobs:
       - name: Set the environment based on the branch
         id: define_environment
         run: |
-          if["${{github.ref}}" = "refs/heads/main"]; then
+          if [ "${{github.ref}}" = "refs/heads/main" ]; then
             echo "target_branch=main" >> $GITHUB_OUTPUT
             echo "env_name=Production" >>  $GITHUB_OUTPUT
-          elif ["${{github.ref}}" = "refs/head/develop"]; then
+          elif [ "${{github.ref}}" = "refs/heads/develop" ]; then
             echo "target_branch=develop" >> $GITHUB_OUTPUT
-            echo "env_name=staging" >> $GITHUB_OUTPUT
+            echo "env_name=Staging" >> $GITHUB_OUTPUT
           fi
       - name: Print the environment
         run: echo " The environment is ${{ steps.define_environment.outputs.env_name }}"
@@ -47,7 +47,7 @@ jobs:
 
       - name: Validate required variables and secrets
         run: |
-          missing_vars = ()
+          missing_vars=()
           # Check for required variables 
           [ -z "${{ vars.PUBLIC_URL }}" ] && missing_vars+=("vars.PUBLIC_URL")
           [ -z "${{ vars.REACT_APP_STAC_API_URL }}" ] && missing_vars+=("vars.REACT_APP_STAC_API_URL")
@@ -92,10 +92,10 @@ jobs:
           yarn
           CI=false yarn build
       - name: Upload dist folder
-        uses: actions/upload-artifacts@v4
+        uses: actions/upload-artifact@v4
         with:
-          name: dist_folder
-          path: ./dist
+          name: build_folder
+          path: ./build
 
   deploy:
     name: Deploy EMIT to ${{needs.define-environment.outputs.env_name}} 🚀
@@ -113,14 +113,14 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      - name: Download dist folder
-        uses: actions/download-artifacts@v4
+      - name: Download build folder
+        uses: actions/download-artifact@v4
         with:
-          name: dist_folder
-          path: ./dist
+          name: build_folder
+          path: ./build
 
       - name: ConfigureAWS Credentials
-        uses: awa-actions/configure-awa-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{secrets.DEPLOYMENT_ROLE_ARN}}
           role-session-name: ${{github.repository_owner}}
@@ -128,9 +128,9 @@ jobs:
 
       - name: Upload to S3
         run: |
-          aws s3 sync "./dist" s3://${{ vars.DEPLOYMENT_BUCKET }}${{ vars.PUBLIC_URL }}/ --cache-control max-age=30,must-revalidate,s-maxage=604800 --delete
+          aws s3 sync "./build" s3://${{ vars.DEPLOYMENT_BUCKET }}${{ vars.PUBLIC_URL }}/ --cache-control max-age=30,must-revalidate,s-maxage=604800 --delete
       - name: Request Invalidation to AWS Cloudfront
-        uses: oneydev/aws-cloudfront-invalidation@v1
+        uses: oneyedev/aws-cloudfront-invalidation@v1
         with:
           distribution-id: ${{secrets.CF_DISTRIBUTION_ID}}
           paths: |
