@@ -88,8 +88,8 @@ jobs:
           REACT_APP_COVERAGE_URL: ${{ vars.REACT_APP_COVERAGE_URL }}
           DEPLOYMENT_BUCKET: ${{ vars.DEPLOYMENT_BUCKET }}
         run: |
-          printf '%s\n' "${env.PUBLIC_URL}"
-          printf '%s\n' "${env.DEPLOYMENT_BUCKET}"
+          echo "PUBLIC_URL = $PUBLIC_URL"
+          echo "DEPLOYMENT_BUCKET = $DEPLOYMENT_BUCKET"
           yarn
           CI=false yarn build
           aws s3 sync build/ s3://${{ env.DEPLOYMENT_BUCKET }}${{ env.PUBLIC_URL }}
