@@ -88,10 +88,12 @@ jobs:
           REACT_APP_COVERAGE_URL: ${{ vars.REACT_APP_COVERAGE_URL }}
           DEPLOYMENT_BUCKET: ${{ vars.DEPLOYMENT_BUCKET }}
         run: |
+          printf '%s\n' "${env.PUBLIC_URL}"
+          printf '%s\n' "${env.DEPLOYMENT_BUCKET}"
           yarn
           CI=false yarn build
-          aws s3 sync build/ s3://${{ env.DEPLOYMENT_BUCKET }}${{ env.PUBLIC_URL }}pr-preview-${{ github.event.number }}
-          COMMENT+="- 🛰️ PR Preview: ${{ vars.PREVIEW_WEB_DISTRIBUTION_URL }}${{ env.PUBLIC_URL }}pr-preview-${{ github.event.number }} \n \n"
+          aws s3 sync build/ s3://${{ env.DEPLOYMENT_BUCKET }}${{ env.PUBLIC_URL }}
+          COMMENT+="- 🛰️ PR Preview: ${{ vars.PREVIEW_WEB_DISTRIBUTION_URL }}${{ env.PUBLIC_URL }} \n \n"
           echo "COMMENT=${COMMENT}" >> $GITHUB_ENV
 
       - name: Add/update PR comment
