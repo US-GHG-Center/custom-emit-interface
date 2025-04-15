@@ -91,7 +91,7 @@ jobs:
           echo "PUBLIC_URL = $PUBLIC_URL"
           echo "DEPLOYMENT_BUCKET = $DEPLOYMENT_BUCKET"
           yarn
-          PUBLIC_URL=$PUBLIC_URL CI=false yarn build
+          CI=false PUBLIC_URL=$PUBLIC_URL  yarn build
           aws s3 sync build/ s3://$DEPLOYMENT_BUCKET$PUBLIC_URL
           COMMENT+="- 🛰️ PR Preview: ${{ vars.PREVIEW_WEB_DISTRIBUTION_URL }}$PUBLIC_URL \n \n"
           echo "COMMENT=${COMMENT}" >> $GITHUB_ENV
