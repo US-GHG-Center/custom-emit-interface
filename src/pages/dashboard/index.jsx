@@ -242,14 +242,16 @@ export function Dashboard({
             getPopupContent={getPopupContent}
             items={Object.keys(filteredVizItems).map((item) => {
               const v = filteredVizItems[item];
+              const plumeProperties = v?.plumeProperties;
               return {
                 coordinates: {
                   lat: v?.lat,
                   lon: v?.lon,
                 },
-                location: v?.plumeProperties?.location,
-                utcTimeObserved: v?.plumeProperties?.utcTimeObserved,
+                location: plumeProperties?.location,
+                utcTimeObserved: plumeProperties?.utcTimeObserved,
                 id: item,
+                plumeId: plumeProperties?.plumeId,
               };
             })}
             onSelectVizItem={handleSelectedVizItem}
