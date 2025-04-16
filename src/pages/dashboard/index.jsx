@@ -249,7 +249,7 @@ export function Dashboard({
                 },
                 location: v?.plumeProperties?.location,
                 utcTimeObserved: v?.plumeProperties?.utcTimeObserved,
-                id: item,
+                id: v?.plumeProperties?.plumeId,
               };
             })}
             onSelectVizItem={handleSelectedVizItem}
