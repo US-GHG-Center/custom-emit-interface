@@ -95,11 +95,10 @@ export function Dashboard({
     if (!vizItemId) return;
     setFromSearch(false);
     const vizItem = filteredVizItems[vizItemId];
-    const location = vizItem?.geometry?.coordinates[0][0];
-    const [lon, lat] = location;
-    const offsetLocation = [lon + 0.1, lat + 0.01];
+    const lat = vizItem?.lat;
+    const lon = vizItem?.lon;
     setVisualizationLayers([vizItem]);
-    setZoomLocation(offsetLocation);
+    setZoomLocation([lon, lat]);
     setZoomLevel(RASTER_ZOOM_LEVEL); // take the default zoom level
     setOpenDrawer(true);
   };
