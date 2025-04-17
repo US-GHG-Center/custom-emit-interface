@@ -219,7 +219,7 @@ export function Dashboard({
               </HorizontalLayout>
               <HorizontalLayout>
                 <ToggleSwitch
-                  title={'Show EMIT Coverages'}
+                  title={'Show EMIT Coverage'}
                   onToggle={handleCoverageToggle}
                   initialState={showCoverage}
                   enabled={enableToggle}
