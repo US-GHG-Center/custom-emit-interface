@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Slider, Typography, Box } from '@mui/material';
 import moment from 'moment';
 /**
@@ -11,14 +11,28 @@ import moment from 'moment';
  * @param {Array<Object>} props.vizItems - Array of STACItems to filter.
  * @param {Function} props.onFilteredItems - Callback with filtered STACItems based on selected date range.
  * @param {Function} props.onDateChange - Callback to emit selected date range (in milliseconds).
+ * @param {Object} props.filterDateRange - Contains startDate & endDate for initial slider bounds.
  *
  * @returns {JSX.Element}
  */
+export function FilterByDate({
+  vizItems,
+  onFilteredItems,
+  onDateChange,
+  filterDateRange,
+}) {
+  const minDate = filterDateRange?.startDate
+    ? moment(filterDateRange.startDate).valueOf()
+    : moment('2022-08-22')?.valueOf();
+  const maxDate = filterDateRange?.endDate
+    ? moment(filterDateRange?.endDate).valueOf()
+    : moment?.now()?.valueOf();
 
-export function FilterByDate({ vizItems, onFilteredItems, onDateChange }) {
-  const minDate = moment('2022-08-09').valueOf();
-  const maxDate = moment().valueOf();
   const [dateRange, setDateRange] = useState([minDate, maxDate]);
+
+  useEffect(() => {
+    setDateRange([minDate, maxDate]);
+  }, [minDate, maxDate]);
 
   /**
    * Handles slider commit: filters data and emits range + results.

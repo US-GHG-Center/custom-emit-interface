@@ -40,6 +40,7 @@ export function DashboardContainer() {
   const [collectionMeta, setCollectionMeta] = useState({});
   const [plumes, setPlumes] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [filterDateRange, setFilterDateRange] = useState({});
 
   useEffect(() => {
     setLoadingData(true);
@@ -59,9 +60,15 @@ export function DashboardContainer() {
         const stacData = await fetchAllFromSTACAPI(stacAPIEndpoint);
 
         // transform the data
-        const { data } = await transformMetadata(metadata, stacData);
+        const { data, latestPlume } = await transformMetadata(
+          metadata,
+          stacData
+        );
         setPlumes(data);
-
+        setFilterDateRange({
+          startDate: '2022-08-22',
+          endDate: latestPlume?.properties?.datetime,
+        });
         // remove loading
         setLoadingData(false);
       } catch (error) {
@@ -105,6 +112,7 @@ export function DashboardContainer() {
       setZoomLocation={setZoomLocation}
       setZoomLevel={setZoomLevel}
       collectionMeta={collectionMeta}
+      filterDateRange={filterDateRange}
       collectionId={collectionId}
       loadingData={loadingData}
     />

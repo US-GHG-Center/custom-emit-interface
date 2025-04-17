@@ -89,6 +89,7 @@ export const transformMetadata = async (
     const next_date = new Date(next.properties.datetime).getTime();
     return prev_date - next_date;
   });
+  let latestPlume = sortedData[sortedData.length - 1];
   // Transform stac data to markers with associated data
   const plumes: Record<string, Plume> = {};
   sortedData.forEach(async (item: STACItem) => {
@@ -147,6 +148,7 @@ export const transformMetadata = async (
 
   return {
     data: plumes,
+    latestPlume: latestPlume,
   };
 };
 

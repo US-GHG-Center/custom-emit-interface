@@ -62,6 +62,7 @@ export function Dashboard({
   collectionMeta,
   coverage,
   zoomLocation,
+  filterDateRange,
   setZoomLocation,
   zoomLevel,
   setZoomLevel,
@@ -212,6 +213,7 @@ export function Dashboard({
               </HorizontalLayout>
               <HorizontalLayout>
                 <FilterByDate
+                  filterDateRange={filterDateRange}
                   vizItems={Object.keys(vizItems).map((key) => vizItems[key])}
                   onFilteredItems={handleFilterVizItems}
                   onDateChange={handleDateRangeChange}
