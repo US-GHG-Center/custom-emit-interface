@@ -51,7 +51,8 @@ export function MapViewPortComponent({
   };
 
   useEffect(() => {
-    if (!map || !map.isStyleLoaded()) return;
+    //this will prevent the items to change when filtered items are changed
+    // if (!map || !map.isStyleLoaded()) return;
 
     const handleViewportChange = () => {
       const zoom = map.getZoom();
