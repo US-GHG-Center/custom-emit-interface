@@ -61,7 +61,7 @@ export const createColorbar = (colorbar, VMIN, VMAX, STEP, colormap) => {
 
 function generateScale(min, max, step) {
   const numbers = [];
-  for (let i = min; i <= max; i += step) {
+  for (let i = 0; i <= max; i += step) {
     numbers.push(i);
   }
   numbers[numbers.length - 1] += '+';

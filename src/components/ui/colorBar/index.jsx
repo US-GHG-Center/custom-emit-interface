@@ -26,7 +26,7 @@ import './index.css';
 export const ColorBar = ({ label, VMIN, VMAX, STEPS, colormap }) => {
   const colorBarScale = useRef();
   useEffect(() => {
-    const STEP = Math.floor((VMAX - VMIN) / STEPS);
+    const STEP = Math.ceil((VMAX - VMIN) / STEPS);
     const colorbar = d3.select(colorBarScale.current);
     createColorbar(colorbar, VMIN, VMAX, STEP, colormap);
 
