@@ -4,23 +4,16 @@ import moment from 'moment';
 /**
  * FilterByDate Component
  *
- * Provides an interactive slider to filter STAC items by observation date.
- * Displays the selected date range and emits filtered results on commit.
+ * Provides an interactive slider to  change the date range based on the position of slide
+ * Displays the selected date range and provides the callback on change event
  *
  * @param {Object} props
- * @param {Array<Object>} props.vizItems - Array of STACItems to filter.
- * @param {Function} props.onFilteredItems - Callback with filtered STACItems based on selected date range.
  * @param {Function} props.onDateChange - Callback to emit selected date range (in milliseconds).
  * @param {Object} props.filterDateRange - Contains startDate & endDate for initial slider bounds.
  *
  * @returns {JSX.Element}
  */
-export function FilterByDate({
-  vizItems,
-  onFilteredItems,
-  onDateChange,
-  filterDateRange,
-}) {
+export function FilterByDate({ onDateChange, filterDateRange }) {
   const minDate = filterDateRange?.startDate
     ? moment(filterDateRange.startDate).valueOf()
     : moment('2022-08-22')?.valueOf();
@@ -42,12 +35,6 @@ export function FilterByDate({
    */
   const handleSliderChange = (_, dateRange) => {
     onDateChange(dateRange);
-    const filteredVizItems = vizItems.filter((vizItem) => {
-      const vizItemDate = moment(vizItem?.properties?.datetime).valueOf();
-      const item = vizItemDate >= dateRange[0] && vizItemDate <= dateRange[1];
-      return item;
-    });
-    onFilteredItems(filteredVizItems);
   };
 
   return (
