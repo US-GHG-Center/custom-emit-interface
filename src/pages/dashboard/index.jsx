@@ -128,6 +128,19 @@ export function Dashboard({
     setZoomLevel(RASTER_ZOOM_LEVEL);
     setOpenDrawer(true);
   };
+  const filterVizItems = (dateRange, vizItems) => {
+    const allVizItems = Object.keys(vizItems)?.map((key) => vizItems[key]);
+    const filteredVizItems = allVizItems.filter((vizItem) => {
+      const vizItemDate = moment(vizItem?.properties?.datetime).valueOf();
+      const item = vizItemDate >= dateRange[0] && vizItemDate <= dateRange[1];
+      return item;
+    });
+    const newItems = {};
+    filteredVizItems.forEach((item) => {
+      newItems[item?.id] = item;
+    });
+    return newItems;
+  }
 
   const handleResetHome = () => {
     setFromSearch(false);
@@ -175,16 +188,7 @@ export function Dashboard({
   const handleDateRangeChange = (dateRange) => {
     if (!coverage) return;
     const filteredCoverages = filterByDateRange(coverage, dateRange);
-    const allVizItems = Object.keys(vizItems).map((key) => vizItems[key]);
-    const filteredVizItems = allVizItems.filter((vizItem) => {
-      const vizItemDate = moment(vizItem?.properties?.datetime).valueOf();
-      const item = vizItemDate >= dateRange[0] && vizItemDate <= dateRange[1];
-      return item;
-    });
-    const newItems = {};
-    filteredVizItems.forEach((item) => {
-      newItems[item?.id] = item;
-    });
+    const newItems = filterVizItems(dateRange, vizItems);
     setFilteredVizItems(newItems);
     setCoverageFeatures(filteredCoverages);
   };
