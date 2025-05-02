@@ -164,9 +164,9 @@ export function Dashboard({
   useEffect(() => {
     const colormap = collectionMeta?.renders?.dashboard?.colormap_name;
     const rescaleValues = collectionMeta?.renders?.dashboard?.rescale;
-    // const VMIN = rescaleValues && rescaleValues[0][0];
+    const VMIN = rescaleValues && rescaleValues[0][0];
     const VMAX = rescaleValues && rescaleValues[0][1];
-    setVMIN(0);
+    setVMIN(VMIN);
     setVMAX(VMAX);
     setColormap(colormap);
   }, [collectionMeta]);
