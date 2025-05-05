@@ -24,6 +24,7 @@ import './index.css';
 import ToggleSwitch from '../../components/ui/toggle';
 import { filterByDateRange, getPopupContent } from './helper';
 import Plumes from './helper/PlumeLayer';
+import moment from 'moment';
 
 const TITLE = 'EMIT Methane Plume Viewer';
 const DESCRIPTION =
@@ -126,6 +127,19 @@ export function Dashboard({
     setZoomLevel(RASTER_ZOOM_LEVEL);
     setOpenDrawer(true);
   };
+  const filterVizItems = (dateRange, vizItems) => {
+    const allVizItems = Object.keys(vizItems)?.map((key) => vizItems[key]);
+    const filteredVizItems = allVizItems.filter((vizItem) => {
+      const vizItemDate = moment(vizItem?.properties?.datetime).valueOf();
+      const item = vizItemDate >= dateRange[0] && vizItemDate <= dateRange[1];
+      return item;
+    });
+    const newItems = {};
+    filteredVizItems.forEach((item) => {
+      newItems[item?.id] = item;
+    });
+    return newItems;
+  }
 
   const handleResetHome = () => {
     setFromSearch(false);
@@ -138,14 +152,6 @@ export function Dashboard({
   const handleHoveredVizLayer = useCallback((vizItemId) => {
     setHoveredVizLayerId(vizItemId);
   }, []);
-
-  const handleFilterVizItems = (result) => {
-    const newItems = {};
-    result.forEach((item) => {
-      newItems[item?.id] = item;
-    });
-    setFilteredVizItems(newItems);
-  };
 
   // Component Effects
   useEffect(() => {
@@ -181,6 +187,8 @@ export function Dashboard({
   const handleDateRangeChange = (dateRange) => {
     if (!coverage) return;
     const filteredCoverages = filterByDateRange(coverage, dateRange);
+    const newItems = filterVizItems(dateRange, vizItems);
+    setFilteredVizItems(newItems);
     setCoverageFeatures(filteredCoverages);
   };
 
@@ -213,8 +221,6 @@ export function Dashboard({
               <HorizontalLayout>
                 <FilterByDate
                   filterDateRange={filterDateRange}
-                  vizItems={Object.keys(vizItems).map((key) => vizItems[key])}
-                  onFilteredItems={handleFilterVizItems}
                   onDateChange={handleDateRangeChange}
                 />
               </HorizontalLayout>
