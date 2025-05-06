@@ -291,7 +291,6 @@ export function Dashboard({
           VMAX={VMAX}
           VMIN={VMIN}
           colormap={colormap}
-          STEPS={5}
         />
       )}
       {loadingData && <LoadingSpinner />}
