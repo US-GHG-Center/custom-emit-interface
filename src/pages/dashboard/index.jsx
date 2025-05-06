@@ -292,11 +292,10 @@ export function Dashboard({
       </div>
       {VMAX && (
         <ColorBar
-          label={'Methane Column Enhancement (ppm m)'}
+          label={'Methane enhancement (ppm m)'}
           VMAX={VMAX}
           VMIN={VMIN}
           colormap={colormap}
-          STEPS={5}
         />
       )}
       {loadingData && <LoadingSpinner />}

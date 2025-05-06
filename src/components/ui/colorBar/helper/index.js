@@ -24,46 +24,34 @@ const COLOR_MAP = {
       @param {string} colormap - name of the colormap
      
 */
+export const createColorbar = (
+  container,
+  VMIN,
+  VMAX,
+  colormap,
+  width = 300
+) => {
+  const height = 12;
+  const segmentCount = 100;
 
-export const createColorbar = (colorbar, VMIN, VMAX, STEP, colormap) => {
-  // Create a color scale using D3
   const colorScale = d3
-    .scaleSequential(COLOR_MAP[colormap])
-    .domain([VMIN, VMAX]); // Set VMIN and VMAX as your desired min and max values
+    .scaleSequential(COLOR_MAP[colormap] || d3.interpolatePlasma)
+    .domain([VMIN, VMAX]);
 
-  colorbar
+  const data = d3.range(VMIN, VMAX, (VMAX - VMIN) / segmentCount);
+
+  const svg = container
     .append('svg')
-    .attr('class', 'colorbar-svg')
-    .append('g')
+    .attr('width', '100%')
+    .attr('height', height);
+
+  svg
     .selectAll('rect')
-    .data(d3.range(VMIN, VMAX, (VMAX - VMIN) / 100)) // Adjust the number of color segments as needed
-    .enter()
-    .append('rect')
-    .attr('height', 12) // height of the svg color segment portion
-    .attr('width', '100%') // Adjust the width of each color segment
-    .attr('x', (d, i) => i * 3)
+    .data(data)
+    .join('rect')
+    .attr('x', (_, i) => (i * 100) / segmentCount + '%')
+    .attr('y', 0)
+    .attr('width', 100 / segmentCount + '%')
+    .attr('height', height)
     .attr('fill', (d) => colorScale(d));
-
-  // Define custom scale labels
-  const scaleLabels = generateScale(VMIN, VMAX, STEP);
-
-  // Create a container for color labels
-  colorbar
-    .append('div')
-    .attr('class', 'colorbar-scale-tick-label-container')
-    .selectAll('div')
-    .data(scaleLabels)
-    .enter()
-    .append('div')
-    .attr('class', 'colorbar-scale-tick-label')
-    .text((d) => d); // Set the tick label text
 };
-
-function generateScale(min, max, step) {
-  const numbers = [];
-  for (let i = min; i <= max; i += step) {
-    numbers.push(i);
-  }
-  numbers[numbers.length - 1] += '+';
-  return numbers;
-}
