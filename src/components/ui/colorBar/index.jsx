@@ -23,7 +23,7 @@ import './index.css';
  * @returns {JSX.Element}
  */
 export const ColorBar = ({ label, VMIN, VMAX, colormap }) => {
-  const BAR_WIDTH = 350;
+  const BAR_WIDTH = 450;
   const colorBarContainer = useRef();
   const { tooltip, handleMouseMove, hideTooltip } = useTooltipPosition();
 
