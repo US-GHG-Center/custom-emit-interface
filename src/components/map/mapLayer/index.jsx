@@ -35,6 +35,7 @@ export const VisualizationLayer = ({
   onClickedOnLayer,
   onHoverOverLayer,
   registerEventHandler,
+  config,
 }) => {
   const { map } = useMapbox();
   const [vizItemId, setVizItemId] = useState('');
@@ -61,6 +62,9 @@ export const VisualizationLayer = ({
     const polygonLayerId = getLayerId('polygon', vizItemId);
     const polygonFillSourceId = getSourceId('fill', vizItemId);
     const polygonFillLayerId = getLayerId('fill', vizItemId);
+    const rasterApiUrl = config?.rasterApiUrl
+      ? config.rasterApiUrl
+      : process.env.REACT_APP_RASTER_API_URL;
 
     // Add layers to map
     addSourceLayerToMap(
@@ -71,7 +75,8 @@ export const VisualizationLayer = ({
       assets,
       feature,
       rasterSourceId,
-      rasterLayerId
+      rasterLayerId,
+      rasterApiUrl
     );
 
     addSourcePolygonToMap(
@@ -146,6 +151,7 @@ export const VisualizationLayers = ({
   onHoverOverLayer,
   onClickedOnLayer,
   handleRemoveLayer,
+  config,
 }) => {
   const { map } = useMapbox();
 
@@ -255,6 +261,7 @@ export const VisualizationLayers = ({
           colormap={colormap}
           assets={assets}
           registerEventHandler={registerEventHandler}
+          config={config}
         />
       ))}
     </>

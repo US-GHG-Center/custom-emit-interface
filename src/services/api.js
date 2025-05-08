@@ -1,4 +1,3 @@
-const LOCATION_LOOKUP_PATH = `${process.env.PUBLIC_URL}/lookups/plumeIdLocation.json`;
 export const UNKNOWN = 'unknown';
 export const fetchData = async (endpoint) => {
   try {
@@ -8,7 +7,7 @@ export const fetchData = async (endpoint) => {
     }
     return await response.json();
   } catch (err) {
-    console.error('Error while getting data');
+    console.warn('Error while getting data', err);
     return null;
   }
 };
@@ -27,7 +26,11 @@ export const getCoverageData = async (url) => {
   return coverageData;
 };
 
-export const getLocationForFeature = async (feature) => {
+export const getLocationForFeature = async (feature, config) => {
+  const publicUrl = config?.publicUrl
+    ? config.publicUrl
+    : process.env.PUBLIC_URL;
+  const LOCATION_LOOKUP_PATH = `${publicUrl}/locationLookup.json`;
   const response = await fetch(LOCATION_LOOKUP_PATH);
   const lookup_location = await response.json();
   const lat = feature.properties['Latitude of max concentration'];
@@ -42,21 +45,42 @@ export const getLocationForFeature = async (feature) => {
   ) {
     result = lookup_location[id];
   } else {
-    result = await fetchLocationFromEndpoint(lat, lon);
+    const apikey = config?.geoApifyKey
+      ? config.geoApifyKey
+      : process.env.REACT_APP_GEOAPIFY_APIKEY;
+    if (!apikey) {
+      console.warn('No api key found for location endpoint');
+      return;
+    }
+    const baseEndpoint = config?.latlonEndpoint
+      ? config.latlonEndpoint
+      : process.env.REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT;
+    const endpoint = `${baseEndpoint}?lat=${lat}&lon=${lon}&&apiKey=${apikey}`;
+    result = await fetchLocationFromEndpoint(lat, lon, endpoint);
   }
   return result;
 };
 
-export const getAllLocation = async () => {
-  const response = await fetch(LOCATION_LOOKUP_PATH);
-  const lookup_location = await response.json();
-  return lookup_location;
+export const getAllLocation = async (config) => {
+  try {
+    console.log({ config });
+    const publicUrl = config?.publicUrl
+      ? config.publicUrl
+      : process.env.PUBLIC_URL;
+    const LOCATION_LOOKUP_PATH = `${publicUrl}/locationLookup.json`;
+    console.log({ LOCATION_LOOKUP_PATH });
+    const response = await fetch(LOCATION_LOOKUP_PATH);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const lookup_location = await response.json();
+    return lookup_location;
+  } catch (err) {
+    console.warn('❌ Error while fetching location data:', err);
+  }
 };
 
-export const fetchLocationFromEndpoint = async (lat, lon) => {
+export const fetchLocationFromEndpoint = async (lat, lon, endpoint) => {
   let location = '';
   try {
-    const endpoint = `${process.env.REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT}?lat=${lat}&lon=${lon}&&apiKey=${process.env.REACT_APP_GEOAPIFY_APIKEY}`;
     const location_data = await fetchData(endpoint);
     let location_properties = location_data.features[0].properties;
     let sub_location =
@@ -69,7 +93,7 @@ export const fetchLocationFromEndpoint = async (lat, lon) => {
       : '';
     location = `${sub_location}, ${state} ${country}`;
   } catch (error) {
-    console.error(`Error fetching location for ${lat}, ${lon}:`, error);
+    console.warn(`Error fetching location for ${lat}, ${lon}:`, error);
     location = UNKNOWN;
   }
   return location;
