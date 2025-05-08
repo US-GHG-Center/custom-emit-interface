@@ -19,14 +19,14 @@ import {
   CoverageData,
   CoverageFeature,
   CoverageGeoJsonData,
-} from '../../../dataModel';
+} from '../dataModel';
 
 import {
   getAllLocation,
   getResultArray,
   UNKNOWN,
   fetchLocationFromEndpoint,
-} from '../../../services/api';
+} from '../services/api';
 
 /**
  * Performs reverse geocoding for a given feature based on its plume ID.

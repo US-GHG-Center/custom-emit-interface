@@ -1,9 +1,9 @@
 import { Fragment } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import CssBaseline from '@mui/material/CssBaseline';
-import { DashboardContainer } from './pages/dashboardContainer';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { EmitInterface } from './pages/emitInterface';
 
 import './App.css';
 
@@ -16,7 +16,16 @@ function App() {
       <LocalizationProvider dateAdapter={AdapterMoment}>
         <BrowserRouter basename={BASE_PATH}>
           <Routes>
-            <Route path='/' element={<DashboardContainer />}></Route>
+            <Route
+              path='/'
+              element={
+                <EmitInterface
+                  collectionId='emit-ch4plume-v1'
+                  zoomLocation={[-98.771556, 32.967243]}
+                  zoomLevel={4}
+                />
+              }
+            />
           </Routes>
         </BrowserRouter>
       </LocalizationProvider>
