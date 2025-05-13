@@ -16,7 +16,7 @@ import {
   CoverageLayers,
   MapViewPortComponent,
   RASTER_ZOOM_LEVEL,
-} from '@components';
+} from '../../components/index';
 
 import styled from 'styled-components';
 
