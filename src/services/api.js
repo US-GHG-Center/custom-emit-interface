@@ -69,7 +69,8 @@ export const fetchLocationFromEndpoint = async (lat, lon) => {
       : '';
     location = `${sub_location}, ${state} ${country}`;
   } catch (error) {
-    console.error(`Error fetching location for ${lat}, ${lon}:`, error);
+    console.warn(`Error fetching location for ${lat}, ${lon}:`, error);
+
     location = UNKNOWN;
   }
   return location;
