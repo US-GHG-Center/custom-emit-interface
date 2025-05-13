@@ -42,6 +42,7 @@ const reverseGeocoding = async (
   feature: Features
 ) => {
   const id = feature?.properties['Plume ID'];
+  if (!allLocation) return ;
   const locationFromLookup = allLocation[id];
   if (locationFromLookup !== undefined && locationFromLookup !== UNKNOWN) {
     return locationFromLookup;
@@ -63,10 +64,10 @@ const reverseGeocoding = async (
  * @returns {Promise<{ data: Record<string, Plume> }>} - A plume map keyed by STAC item ID.
  */
 export const transformMetadata = async (
-  metadata: Metadata,
+  metaData: Metadata,
   stacData: STACItem[]
 ) => {
-  const metaFeatures = getResultArray(metadata);
+  const metaFeatures = getResultArray(metaData);
   const allLocation: Record<string, string> = await getAllLocation();
 
   const polygonLookup = new Map<string, Features>();
@@ -96,7 +97,8 @@ export const transformMetadata = async (
     const id = item.id;
     const pointInfo: Features = pointLookup.get(id) as Features;
     const polygonInfo: Features = polygonLookup.get(id) as Features;
-    const location = await reverseGeocoding(allLocation, pointInfo as Features);
+    const location =
+      (await reverseGeocoding(allLocation, pointInfo as Features)) ?? '';
     const properties: Properties = {
       longitudeOfMaxConcentration:
         pointInfo?.properties['Longitude of max concentration'],
@@ -145,7 +147,6 @@ export const transformMetadata = async (
       stac_extensions: item.stac_extensions,
     };
   });
-
   return {
     data: plumes,
     latestPlume: latestPlume,

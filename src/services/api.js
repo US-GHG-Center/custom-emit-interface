@@ -1,4 +1,4 @@
-const LOCATION_LOOKUP_PATH = `${process.env.PUBLIC_URL}/lookups/plumeIdLocation.json`;
+const LOCATION_LOOKUP_PATH = `${process.env.PUBLIC_URL}/locationLookup.json`;
 export const UNKNOWN = 'unknown';
 export const fetchData = async (endpoint) => {
   try {
@@ -8,7 +8,7 @@ export const fetchData = async (endpoint) => {
     }
     return await response.json();
   } catch (err) {
-    console.error('Error while getting data');
+    console.error('Error while getting data', err);
     return null;
   }
 };
@@ -48,9 +48,14 @@ export const getLocationForFeature = async (feature) => {
 };
 
 export const getAllLocation = async () => {
-  const response = await fetch(LOCATION_LOOKUP_PATH);
-  const lookup_location = await response.json();
-  return lookup_location;
+  try {
+    const response = await fetch(LOCATION_LOOKUP_PATH);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const lookup_location = await response.json();
+    return lookup_location;
+  } catch (err) {
+    console.warn('❌ Error while fetching location data:', err);
+  }
 };
 
 export const fetchLocationFromEndpoint = async (lat, lon) => {
@@ -69,7 +74,7 @@ export const fetchLocationFromEndpoint = async (lat, lon) => {
       : '';
     location = `${sub_location}, ${state} ${country}`;
   } catch (error) {
-    console.error(`Error fetching location for ${lat}, ${lon}:`, error);
+    console.warn(`Error fetching location for ${lat}, ${lon}:`, error);
     location = UNKNOWN;
   }
   return location;
