@@ -77,12 +77,11 @@ const reverseGeocoding = async (
  * @returns {Promise<{ data: Record<string, Plume> }>} - A plume map keyed by STAC item ID.
  */
 export const transformMetadata = async (
-  metaData: Metadata,
-  stacData: STACItem[],
-  config: EmitInterfaceConfig
+  metadata: Metadata,
+  stacData: STACItem[]
 ) => {
-  const metaFeatures = getResultArray(metaData);
-  const allLocation: Record<string, string> = await getAllLocation(config);
+  const metaFeatures = getResultArray(metadata);
+  const allLocation: Record<string, string> = await getAllLocation();
 
   const polygonLookup = new Map<string, Features>();
   let pointLookup = new Map<string, Features>();
