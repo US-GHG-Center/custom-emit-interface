@@ -1,19 +1,10 @@
-export interface Config {
-  stacApiUrl: string;
-  metadataEndpoint: string;
-  coverageUrl: string;
-  baseStacApiUrl: string;
-  defaultZoomLocation: [number, number];
-  defaultZoomLevel: number;
-  defaultCollectionId: string;
-  defaultStartDate: string;
-}
+import { EmitInterfaceConfig } from '../pages/emitInterface/types';
 
 /**
  * Default configuration for the EMIT Interface
  * These values will be used if no user configuration is provided
  */
-const defaultConfig: Config = {
+const defaultConfig: EmitInterfaceConfig = {
   // API Endpoints
   stacApiUrl: process.env.REACT_APP_STAC_API_URL || '',
   metadataEndpoint: process.env.REACT_APP_METADATA_ENDPOINT || '',
@@ -31,38 +22,38 @@ const defaultConfig: Config = {
 
 /**
  * Merges user configuration with default configuration
- * @param {Partial<Config>} userConfig - User provided configuration
- * @returns {Config} Merged configuration
+ * @param {Partial<EmitInterfaceConfig>} userConfig - User provided configuration
+ * @returns {EmitInterfaceConfig} Merged configuration
  */
-export const getConfig = (userConfig: Partial<Config> = {}): Config => {
+export const getConfig = (userConfig: Partial<EmitInterfaceConfig> = {}): EmitInterfaceConfig => {
   return {
     ...defaultConfig,
     ...userConfig,
   };
 };
 
+interface ValidationResult {
+  result: boolean;
+  missingFields: string[];
+}
+
 /**
  * Validates the configuration
- * @param {Config} config - Configuration to validate
- * @throws {Error} If required configuration is missing
+ * @param {EmitInterfaceConfig} config - Configuration to validate
+ * @returns {ValidationResult} Validation result with missing fields if any
  */
-export const validateConfig = (config: Config): void => {
-  const requiredFields: (keyof Config)[] = [
+export const validateConfig = (config: EmitInterfaceConfig): ValidationResult => {
+  const requiredFields: (keyof EmitInterfaceConfig)[] = [
     'stacApiUrl',
     'metadataEndpoint',
     'coverageUrl',
     'baseStacApiUrl',
   ];
 
-  const missingFields = requiredFields.filter(
-    (field) => !config[field]
-  );
+  const missingFields = requiredFields.filter((field) => !config[field]);
 
   if (missingFields.length > 0) {
-    throw new Error(
-      `Missing required configuration fields: ${missingFields.join(
-        ', '
-      )}`
-    );
+    return { result: false, missingFields };
   }
+  return { result: true, missingFields: [] };
 }; 

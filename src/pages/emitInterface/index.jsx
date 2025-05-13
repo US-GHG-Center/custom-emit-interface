@@ -12,7 +12,7 @@ import {
   createIndexedCoverageData,
 } from '../../utils/dataTransform.ts';
 
-import { getConfig, validateConfig } from '../../services/config.js';
+import { getConfig, validateConfig } from '../../services/config.ts';
 
 /**
  * EmitInterface Component
