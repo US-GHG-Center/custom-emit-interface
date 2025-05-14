@@ -1,19 +1,41 @@
 {
-  "name": "interface-template",
+  "name": "emit-library",
   "version": "1.0.0",
-  "private": true,
-  "homepage": ".",
+  "description": "A customizable EMIT Methane Plume Viewer interface component",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "start": "yarn reset &&  dotenv -- node ./run-parcel.js serve",
     "serve": "parcel public/index.html",
     "reset": "yarn clean && yarn copy-static",
     "copy-static": "cp -r static/* public/",
-    "clean": "rm -rf node_modules build yarn.lock .parcel-cache && yarn cache clean && yarn install",
+    "clean": "rm -rf node_modules build yarn.lock .parcel-cache dist && yarn cache clean && yarn install",
     "build": "yarn reset &&  dotenv -- node ./run-parcel.js build --dist-dir build",
+    "build:lib": "yarn clean && parcel build src/index.ts --dist-dir dist --no-cache",
+    "build:all": "yarn build:lib && yarn build",
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "fix-conflicts": "prettier --write . && eslint . --fix"
+    "fix-conflicts": "prettier --write . && eslint . --fix",
+    "prepublishOnly": "npm run build:lib",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "peerDependencies": {
+    "@mui/icons-material": ">=5.0.0",
+    "@mui/material": ">=5.0.0",
+    "@mui/system": ">=5.0.0",
+    "mapbox-gl": ">=2.0.0",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "react-is": ">=16.8.0",
+    "styled-components": ">=5.0.0"
   },
   "dependencies": {
     "@date-io/moment": "^3.0.0",
@@ -26,7 +48,10 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
+    "@mui/system": "^6.1.6",
     "@mui/x-date-pickers": "^7.22.0",
+    "@swc/helpers": "^0.5.3",
+    "@testing-library/dom": "^9.3.4",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
@@ -46,6 +71,7 @@
     "moment": "^2.30.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-is": "^18.2.0",
     "react-loader-spinner": "^6.1.6",
     "react-resizable-panels": "^2.1.1",
     "react-router-dom": "^6.27.0",
@@ -76,7 +102,10 @@
     "styled-components": "^5"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.0",
     "@parcel/packager-raw-url": "2.15.0",
+    "@parcel/packager-ts": "2.15.0",
+    "@parcel/transformer-typescript-types": "2.15.0",
     "@parcel/transformer-webmanifest": "2.15.0",
     "dotenv-cli": "^8.0.0",
     "eslint": "^8.56.0",
@@ -85,5 +114,26 @@
     "parcel": "^2.14.4",
     "parcel-reporter-static-files-copy": "^1.5.3",
     "prettier": "^3.4.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/interface-template.git"
+  },
+  "keywords": [
+    "react",
+    "interface",
+    "template",
+    "mui",
+    "mapbox",
+    "chart"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/interface-template/issues"
+  },
+  "homepage": "https://github.com/yourusername/interface-template#readme",
+  "publishConfig": {
+    "access": "public"
   }
 }
