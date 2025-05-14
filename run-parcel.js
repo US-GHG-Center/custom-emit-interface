@@ -6,6 +6,8 @@ const { execSync } = require('child_process');
 // require('dotenv').config(); 
 
 const scriptArg = process.argv[2] || 'serve'; // Expect 'serve' or 'build' as an argument
+const buildDir = process.argv[4] ||'build'
+
 
 // Read the public path from the environment variable set in your .env file.
 // This variable (PARCEL_APP_BASE_PATH) is also used by your corrected_fetch_logic_js.
@@ -23,9 +25,10 @@ if (!publicUrl) {
 
 let parcelCommand;
 
+
 // Construct the appropriate Parcel command based on the argument
 if (scriptArg === 'build') {
-  parcelCommand = `parcel build public/index.html --public-url "${publicUrl}"`;
+  parcelCommand = `parcel build public/index.html --public-url "${publicUrl}" --dist-dir ${buildDir}`;
 } else { // Default to 'serve' for starting the dev server
   parcelCommand = `parcel public/index.html --public-url "${publicUrl}"`;
 }
