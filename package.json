@@ -1,6 +1,6 @@
 {
   "name": "emit-library",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A customizable EMIT Methane Plume Viewer interface component",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
