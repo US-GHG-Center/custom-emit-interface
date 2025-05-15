@@ -135,5 +135,9 @@
   "homepage": "https://github.com/yourusername/interface-template#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "alias": {
+    "$components": "./src/components",
+    "$context": "./src/context/"
   }
 }

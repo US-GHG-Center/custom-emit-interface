@@ -4,7 +4,7 @@ import {
   useMapbox,
   getLayerId,
   getSourceId,
-} from '../../../components/index';
+} from '$components';
 
 /**
  * Component responsible for rendering methane plume layers on the map.
