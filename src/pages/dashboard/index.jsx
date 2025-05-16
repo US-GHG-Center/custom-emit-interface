@@ -16,7 +16,7 @@ import {
   CoverageLayers,
   MapViewPortComponent,
   RASTER_ZOOM_LEVEL,
-} from '$components';
+} from '../../components';
 
 import styled from 'styled-components';
 
@@ -139,7 +139,7 @@ export function Dashboard({
       newItems[item?.id] = item;
     });
     return newItems;
-  }
+  };
 
   const handleResetHome = () => {
     setFromSearch(false);
@@ -201,9 +201,8 @@ export function Dashboard({
       setShowCoverages(val);
     }
   };
-
   return (
-    <Box className='fullSize'>
+    <div className='fullSize'>
       <div id='dashboard-map-container'>
         <MainMap>
           <Paper className='title-container'>
@@ -300,6 +299,6 @@ export function Dashboard({
         />
       )}
       {loadingData && <LoadingSpinner />}
-    </Box>
+    </div>
   );
 }

@@ -119,7 +119,7 @@ export const transformMetadata = async (
       daacSceneNumber: pointInfo?.properties['DAAC Scene Numbers'],
       sceneFID: pointInfo?.properties['Scene FIDs'],
       mapEndTime: pointInfo?.properties?.map_endtime,
-      location: location as string,
+      location: ""
     };
     const lon =
       pointInfo?.geometry?.type === 'Point'
