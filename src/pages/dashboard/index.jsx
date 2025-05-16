@@ -69,6 +69,7 @@ export function Dashboard({
   setZoomLevel,
   collectionId,
   loadingData,
+  config,
 }) {
   // states for data
   const [vizItems, setVizItems] = useState([]); // store all available visualization items
@@ -204,7 +205,7 @@ export function Dashboard({
   return (
     <div className='fullSize'>
       <div id='dashboard-map-container'>
-        <MainMap>
+        <MainMap config={config}>
           <Paper className='title-container'>
             <Title title={TITLE} description={DESCRIPTION} />
             <div className='title-content'>

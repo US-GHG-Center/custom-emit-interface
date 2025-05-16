@@ -10,6 +10,11 @@ const defaultConfig: EmitInterfaceConfig = {
   metadataEndpoint: process.env.REACT_APP_METADATA_ENDPOINT || '',
   coverageUrl: process.env.REACT_APP_COVERAGE_URL || '',
   baseStacApiUrl: process.env.REACT_APP_BASE_STAC_API_URL || '',
+  mapboxToken: process.env.REACT_APP_MAPBOX_TOKEN || '',
+  mapBoxStyle: process.env.REACT_APP_MAPBOX_STYLE_URL || '',
+  basemapStyle: process.env.REACT_APP_BASEMAP_STYLES_MAPBOX_ID || '',
+  geoApifyKey: process.env.REACT_APP_GEOAPIFY_APIKEY || '',
+  latlonEndpoint: process.env.REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT || '',
 
   // Map Configuration
   defaultZoomLocation: [-98.771556, 32.967243],
@@ -25,7 +30,9 @@ const defaultConfig: EmitInterfaceConfig = {
  * @param {Partial<EmitInterfaceConfig>} userConfig - User provided configuration
  * @returns {EmitInterfaceConfig} Merged configuration
  */
-export const getConfig = (userConfig: Partial<EmitInterfaceConfig> = {}): EmitInterfaceConfig => {
+export const getConfig = (
+  userConfig: Partial<EmitInterfaceConfig> = {}
+): EmitInterfaceConfig => {
   return {
     ...defaultConfig,
     ...userConfig,
@@ -42,7 +49,9 @@ interface ValidationResult {
  * @param {EmitInterfaceConfig} config - Configuration to validate
  * @returns {ValidationResult} Validation result with missing fields if any
  */
-export const validateConfig = (config: EmitInterfaceConfig): ValidationResult => {
+export const validateConfig = (
+  config: EmitInterfaceConfig
+): ValidationResult => {
   const requiredFields: (keyof EmitInterfaceConfig)[] = [
     'stacApiUrl',
     'metadataEndpoint',
@@ -56,4 +65,4 @@ export const validateConfig = (config: EmitInterfaceConfig): ValidationResult =>
     return { result: false, missingFields };
   }
   return { result: true, missingFields: [] };
-}; 
+};

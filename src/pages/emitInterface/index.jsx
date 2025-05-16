@@ -138,6 +138,7 @@ export const EmitInterface = ({
 
   return (
     <Dashboard
+      config={config}
       plumes={plumes}
       coverage={coverage}
       zoomLocation={zoomLocation}
