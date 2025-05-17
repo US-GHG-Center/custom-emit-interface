@@ -19,6 +19,7 @@ const defaultConfig: EmitInterfaceConfig = {
   basemapStyle: "cldu1cb8f00ds01p6gi583w1m",
   geoApifyKey: "58347c078a5645d6b6367ae88984be7c",
   latlonEndpoint: "https://api.geoapify.com/v1/geocode/reverse",
+  rasterApiUrl: "https://earth.gov/ghgcenter/api/raster",
 
   // Map Configuration
   defaultZoomLocation: [-98.771556, 32.967243],
