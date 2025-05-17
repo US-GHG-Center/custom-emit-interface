@@ -24,17 +24,15 @@ export const MarkerFeature = ({ items, onSelectVizItem, getPopupContent }) => {
   const { map } = useMapbox();
   const [markersVisible, setMarkersVisible] = useState(true);
   const markersRef = useRef([]);
-  /**
-   * Creates a custom Mapbox marker element and adds popup + event handlers.
-   *
-   * @param {Object} item - Single marker object.
-   * @param {string} item.id - Unique identifier for the marker.
-   * @param {Object} item.coordinates - Lat/Lon values.
-   * @returns {Object} Marker, popup, and element metadata for tracking.
-   */
+
   // Memoized marker creation function
   const createMarker = useCallback(
     (item) => {
+      if (!map || !item?.coordinates?.lat || !item?.coordinates?.lon) {
+        console.warn('Invalid map or coordinates:', { map, coordinates: item?.coordinates });
+        return null;
+      }
+
       const { coordinates, id } = item;
       const { lon, lat } = coordinates;
       const markerColor = '#00b7eb';
@@ -91,29 +89,62 @@ export const MarkerFeature = ({ items, onSelectVizItem, getPopupContent }) => {
   useEffect(() => {
     if (!map || !items?.length) return;
 
+    // Wait for map to be fully loaded
+    if (!map.isStyleLoaded()) {
+      map.once('style.load', () => {
+        // Clean up existing markers
+        markersRef.current.forEach(({ marker, element, popup }) => {
+          if (marker && element) {
+            element.remove();
+            marker.remove();
+            popup?.remove();
+          }
+        });
+
+        // Create and add new markers
+        const newMarkers = items.map(createMarker).filter(Boolean);
+        newMarkers.forEach(({ marker }) => marker.addTo(map));
+
+        // Update markers visibility and ref
+        newMarkers.forEach(({ element }) => {
+          if (element) {
+            element.style.display = markersVisible ? 'block' : 'none';
+          }
+        });
+        markersRef.current = newMarkers;
+      });
+      return;
+    }
+
     // Clean up existing markers
     markersRef.current.forEach(({ marker, element, popup }) => {
-      element.remove();
-      marker.remove();
-      popup?.remove();
+      if (marker && element) {
+        element.remove();
+        marker.remove();
+        popup?.remove();
+      }
     });
 
     // Create and add new markers
-    const newMarkers = items.map(createMarker);
+    const newMarkers = items.map(createMarker).filter(Boolean);
     newMarkers.forEach(({ marker }) => marker.addTo(map));
 
     // Update markers visibility and ref
     newMarkers.forEach(({ element }) => {
-      element.style.display = markersVisible ? 'block' : 'none';
+      if (element) {
+        element.style.display = markersVisible ? 'block' : 'none';
+      }
     });
     markersRef.current = newMarkers;
 
     // Cleanup function
     return () => {
       newMarkers.forEach(({ marker, element, popup }) => {
-        element.remove();
-        marker.remove();
-        popup?.remove();
+        if (marker && element) {
+          element.remove();
+          marker.remove();
+          popup?.remove();
+        }
       });
     };
   }, [items, map, createMarker, markersVisible]);

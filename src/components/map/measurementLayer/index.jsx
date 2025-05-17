@@ -41,9 +41,9 @@ export const MeasurementLayer = ({
   mapScaleUnit,
 }) => {
   const { map } = useMapbox();
-  const [measurePoints, setMeasurePoints] = useState(null);
-  const [measureLine, setMeasureLine] = useState(null);
-  const [measureLabel, setMeasureLabel] = useState(null);
+  const [measurePoints, setMeasurePoints] = useState(MEASURE_POINTS);
+  const [measureLine, setMeasureLine] = useState(MEASURE_LINE);
+  const [measureLabel, setMeasureLabel] = useState(MEASURE_LABEL);
 
   /**
    * Reset all internal measurement state and GeoJSON layers.
@@ -53,37 +53,51 @@ export const MeasurementLayer = ({
     setMeasureLabel(MEASURE_LABEL);
     setMeasurePoints(MEASURE_POINTS);
   };
+
   /**
    * Click to place anchor point or remove it.
    */
   const handleClick = (e) => {
-    const anchor = findMeasurementAnchor(e, map, measurePoints);
-    if (!anchor?.features?.length) {
-      cleanMeasurementControlLayers(map);
-      setClearMeasurementIcon(false);
+    if (!map || !map.isStyleLoaded()) return;
+    try {
+      const anchor = findMeasurementAnchor(e, map, measurePoints);
+      if (!anchor?.features?.length) {
+        cleanMeasurementControlLayers(map);
+        setClearMeasurementIcon(false);
+      }
+      setMeasurePoints(anchor);
+      map.getSource('measurePoints')?.setData(anchor);
+      map.moveLayer('measure-points');
+    } catch (error) {
+      console.error('Error handling measurement click:', error);
     }
-    setMeasurePoints(anchor);
-    map.getSource('measurePoints').setData(anchor);
-    map.moveLayer('measure-points');
   };
+
   /**
    * Exit measurement mode on double click.
    */
   const handleDoubleClick = (e) => {
     setMeasureMode(false);
   };
+
   /**
    * Mouse movement dynamically draws measurement line and label.
    */
   const handleMouseMovement = (e) => {
-    const { line, label } = createMeasuringLine(e, measurePoints, mapScaleUnit);
-    map.getSource('measureLine')?.setData(line);
-    map.getSource('measureLabel')?.setData(label);
-    map.moveLayer('measure-line');
-    map.moveLayer('measure-label');
-    setMeasureLine(line);
-    setMeasureLabel(label);
+    if (!map || !map.isStyleLoaded()) return;
+    try {
+      const { line, label } = createMeasuringLine(e, measurePoints, mapScaleUnit);
+      map.getSource('measureLine')?.setData(line);
+      map.getSource('measureLabel')?.setData(label);
+      map.moveLayer('measure-line');
+      map.moveLayer('measure-label');
+      setMeasureLine(line);
+      setMeasureLabel(label);
+    } catch (error) {
+      console.error('Error handling mouse movement:', error);
+    }
   };
+
   /**
    * Hide clear icon if measure mode is off.
    */
@@ -91,40 +105,47 @@ export const MeasurementLayer = ({
     if (!measureMode) {
       setClearMeasurementIcon(false);
     }
-  }, [measureMode]);
+  }, [measureMode, setClearMeasurementIcon]);
+
   /**
    * When clear icon is clicked, reset all measurement layers + state.
    */
   useEffect(() => {
+    if (!map || !map.isStyleLoaded()) return;
     if (clearMeasurementLayer) {
-      cleanMeasurementControlLayers(map);
-      clearMeasurementState();
-      setClearMeasurementIcon(false);
-      setClearMeasurementLayer(false);
+      try {
+        cleanMeasurementControlLayers(map);
+        clearMeasurementState();
+        setClearMeasurementIcon(false);
+        setClearMeasurementLayer(false);
+      } catch (error) {
+        console.error('Error clearing measurement layers:', error);
+      }
     }
-  }, [clearMeasurementLayer, map]);
+  }, [clearMeasurementLayer, map, setClearMeasurementIcon, setClearMeasurementLayer]);
+
   /**
    * If a point is selected and measuring is active, show line + label on mousemove.
    */
   useEffect(() => {
-    if (!map) return;
+    if (!map || !map.isStyleLoaded()) return;
     if (measurePoints?.features.length > 0 && measureMode) {
       setClearMeasurementIcon(true);
       map.on('mousemove', handleMouseMovement);
     }
     return () => {
-      // cleanups
       if (map) {
         map.off('mousemove', handleMouseMovement);
       }
     };
-  }, [map, measurePoints, mapScaleUnit]);
+  }, [map, measurePoints, mapScaleUnit, measureMode, setClearMeasurementIcon]);
+
   /**
    * Handles activation and deactivation of layers, sources, and cursor style.
    */
   useEffect(() => {
     if (!map || !map.isStyleLoaded()) return;
-    if (map) {
+    try {
       changeCursor(map, measurePoints, measureMode);
       if (measureMode) {
         addMeasurementSource(map, measurePoints, measureLine, measureLabel);
@@ -140,26 +161,27 @@ export const MeasurementLayer = ({
         removeMeasurementSource(map);
         removeMeasurementLayer(map);
       };
+    } catch (error) {
+      console.error('Error managing measurement layers:', error);
     }
-  }, [map, measureMode]);
+  }, [map, measureMode, measurePoints, measureLine, measureLabel]);
 
   /**
    * Attach click and double-click handlers when measuring is active.
    */
   useEffect(() => {
-    if (!map) return;
-    if (measureMode && map) {
+    if (!map || !map.isStyleLoaded()) return;
+    if (measureMode) {
       map.on('click', handleClick);
       map.on('dblclick', handleDoubleClick);
     }
     return () => {
-      // cleanups
       if (map) {
         map.off('click', handleClick);
         map.off('dblclick', handleDoubleClick);
       }
     };
-  });
+  }, [map, measureMode]);
 
   return null;
 };

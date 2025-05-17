@@ -4,7 +4,7 @@ import {
   useMapbox,
   getLayerId,
   getSourceId,
-} from '@components';
+} from '../../../components';
 
 /**
  * Component responsible for rendering methane plume layers on the map.
@@ -29,6 +29,7 @@ function Plumes({
   vizItems,
   highlightedLayer,
   onHoverOverLayer,
+  config,
 }) {
   const { map } = useMapbox();
 
@@ -127,6 +128,7 @@ function Plumes({
       highlightedLayer={highlightedLayer}
       onClickedOnLayer={handleClickedOnLayer}
       handleRemoveLayer={handleRemoveLayer}
+      config={config}
     />
   );
 }
