@@ -6,6 +6,7 @@ export interface EmitInterfaceConfig {
   mapboxToken: string;
   mapboxStyle: string;
   basemapStyle: string;
+  rasterApiUrl: string;
   geoApifyKey: string;
   defaultCollectionId: string;
   defaultZoomLocation: [number, number];

@@ -288,6 +288,7 @@ export function Dashboard({
           collectionId={collectionId}
           onSelectVizLayer={handleClickedVizLayer}
           onHoverOnVizLayer={handleHoveredVizLayer}
+          config={config}
         />
         )
       </div>
