@@ -4,7 +4,7 @@ export interface EmitInterfaceConfig {
   stacApiUrl: string;
   coverageUrl: string;
   mapboxToken: string;
-  mapBoxStyle: string;
+  mapboxStyle: string;
   basemapStyle: string;
   geoApifyKey: string;
   defaultCollectionId: string;

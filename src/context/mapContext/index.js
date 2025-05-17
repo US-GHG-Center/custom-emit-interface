@@ -22,8 +22,8 @@ export const MapboxProvider = ({ children, config }) => {
   const accessToken = config?.mapboxToken
     ? config.mapboxToken
     : process.env.REACT_APP_MAPBOX_TOKEN;
-  const mapboxStyleBaseUrl = config?.mamapBoxStyle
-    ? config?.mamapBoxStyle
+  const mapboxStyleBaseUrl = config?.mapboxStyle
+    ? config.mapboxStyle
     : process.env.REACT_APP_MAPBOX_STYLE_URL;
   const BASEMAP_STYLES_MAPBOX_ID = config?.basemapStyle
     ? config.basemapStyle
