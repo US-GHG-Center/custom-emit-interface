@@ -41,16 +41,16 @@ export const addSourceLayerToMap = (
   assets,
   feature,
   sourceId,
-  layerId
+  layerId,
+  rasterApiUrl
 ) => {
   if (!map || (sourceExists(map, sourceId) && layerExists(map, layerId)))
     return;
 
   const collection = feature.collection; // feature.collection
   let itemId = feature.id;
-
   const TILE_URL =
-    `${process.env.REACT_APP_RASTER_API_URL}/collections/${collection}/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?item=` +
+    `${rasterApiUrl}/collections/${collection}/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?item=` +
     itemId +
     '&assets=' +
     assets +

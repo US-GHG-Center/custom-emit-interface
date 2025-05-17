@@ -275,6 +275,7 @@ export function Dashboard({
             assets={assets}
             onHoverOverLayer={handleHoveredVizLayer}
             highlightedLayer={hoveredVizLayerId}
+            config={config}
           />
           )
         </MainMap>
