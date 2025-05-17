@@ -139,7 +139,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/interface-template.git"
+    "url": "git+https://github.com/US-GHG-Center/custom-emit-interface.git"
   },
   "keywords": [
     "react",
@@ -152,9 +152,9 @@
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yourusername/interface-template/issues"
+    "url": "https://github.com/US-GHG-Center/custom-emit-interface/issues"
   },
-  "homepage": "https://github.com/yourusername/interface-template#readme",
+  "homepage": "https://github.com/US-GHG-Center/custom-emit-interface#readme",
   "publishConfig": {
     "access": "public"
   },
