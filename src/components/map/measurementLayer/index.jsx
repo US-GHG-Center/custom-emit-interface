@@ -57,6 +57,7 @@ export const MeasurementLayer = ({
    * Click to place anchor point or remove it.
    */
   const handleClick = (e) => {
+    if (!map.isStyleLoaded()) return;
     const anchor = findMeasurementAnchor(e, map, measurePoints);
     if (!anchor?.features?.length) {
       cleanMeasurementControlLayers(map);
@@ -147,7 +148,7 @@ export const MeasurementLayer = ({
    * Attach click and double-click handlers when measuring is active.
    */
   useEffect(() => {
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map) return;
     if (measureMode && map) {
       map.on('click', handleClick);
       map.on('dblclick', handleDoubleClick);
