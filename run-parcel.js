@@ -1,30 +1,25 @@
 // run-parcel.js
 const { execSync } = require('child_process');
+// No longer strictly need to load .env here if publicUrl comes from package.json targets,
+// but it doesn't hurt if other scripts or parts of your app use process.env.PUBLIC_URL.
 require('dotenv').config();
 
-const mode = process.argv[2] || 'serve'; // 'serve', 'build:lib', or 'build:demo'
-const buildDir = process.argv[3] || 'build';
-
-const publicUrl = process.env.PUBLIC_URL;
-
-if ((mode === 'build' || mode === 'serve') && !publicUrl) {
-  console.error(
-    '[run-parcel.js] ❌ PUBLIC_URL must be defined in your .env file or shell environment.'
-  );
-  process.exit(1);
-}
+const mode = process.argv[2] || 'serve'; // 'serve', 'build:lib', or 'build' (for app)
+// The 'buildDir' argument is no longer used as distDir comes from package.json targets.
 
 let parcelCommand = '';
 
 switch (mode) {
   case 'build:lib':
-    parcelCommand = `parcel build src/index.ts --dist-dir dist --no-cache`;
+    parcelCommand = `parcel build --target library --no-cache`;
     break;
-  case 'build':
-    parcelCommand = `parcel build public/index.html --public-url "${publicUrl}" --dist-dir ${buildDir} --no-cache`;
+  case 'build': // Builds the 'app' target defined in package.json
+    parcelCommand = `parcel build --target app`;
     break;
-  case 'serve':
-    parcelCommand = `parcel public/index.html --public-url "${publicUrl}" --no-cache`;
+  case 'serve': // Serves the 'app' target defined in package.json
+    // The 'app' target in package.json should have publicUrl defined.
+    // Parcel's serve command will use that.
+    parcelCommand = `parcel serve --target app`;
     break;
   default:
     console.error(`[run-parcel.js] ❌ Unknown mode: ${mode}`);
@@ -32,4 +27,10 @@ switch (mode) {
 }
 
 console.log(`[run-parcel.js] ▶ Running: ${parcelCommand}`);
-execSync(parcelCommand, { stdio: 'inherit' });
+try {
+  execSync(parcelCommand, { stdio: 'inherit' });
+} catch (error) {
+  console.error(`[run-parcel.js] ❌ Parcel command failed for mode: ${mode}`);
+  // error object itself is already printed by execSync on failure when stdio is 'inherit'
+  process.exit(1); // Ensure script exits with error code
+}
