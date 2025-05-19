@@ -19,8 +19,7 @@ import {
   CoverageData,
   CoverageFeature,
   CoverageGeoJsonData,
-
-} from '../../../dataModel';
+} from '../dataModel';
 import { EmitInterfaceConfig } from '../pages/emitInterface/types';
 
 
@@ -43,20 +42,17 @@ import {
 const reverseGeocoding = async (
   allLocation: Record<string, string>,
   feature: Features,
-  config:EmitInterfaceConfig
-) => {
+  config: EmitInterfaceConfig
+): Promise<string> => {
   const id = feature?.properties['Plume ID'];
   
   if (!allLocation) return '';
-
   const locationFromLookup = allLocation[id];
   if (locationFromLookup !== undefined && locationFromLookup !== UNKNOWN) {
     return locationFromLookup;
   } else {
     const lat = feature.properties['Latitude of max concentration'];
     const lon = feature.properties['Longitude of max concentration'];
-    
-   
     const apikey = config?.geoApifyKey
       ? config.geoApifyKey
       : process.env.REACT_APP_GEOAPIFY_APIKEY;
@@ -141,7 +137,6 @@ export const transformMetadata = async (
       sceneFID: pointInfo?.properties['Scene FIDs'],
       mapEndTime: pointInfo?.properties?.map_endtime,
       location: location,
-     
     };
     const lon =
       pointInfo?.geometry?.type === 'Point'
