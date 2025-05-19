@@ -58,19 +58,14 @@ export const MeasurementLayer = ({
    * Click to place anchor point or remove it.
    */
   const handleClick = (e) => {
-    if (!map || !map.isStyleLoaded()) return;
-    try {
-      const anchor = findMeasurementAnchor(e, map, measurePoints);
-      if (!anchor?.features?.length) {
-        cleanMeasurementControlLayers(map);
-        setClearMeasurementIcon(false);
-      }
-      setMeasurePoints(anchor);
-      map.getSource('measurePoints')?.setData(anchor);
-      map.moveLayer('measure-points');
-    } catch (error) {
-      console.error('Error handling measurement click:', error);
+    const anchor = findMeasurementAnchor(e, map, measurePoints);
+    if (!anchor?.features?.length) {
+      cleanMeasurementControlLayers(map);
+      setClearMeasurementIcon(false);
     }
+    setMeasurePoints(anchor);
+    map.getSource('measurePoints')?.setData(anchor);
+    map.moveLayer('measure-points');
   };
 
   /**
