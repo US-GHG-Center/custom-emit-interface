@@ -21,6 +21,7 @@ import {
   CoverageGeoJsonData,
 } from '../dataModel';
 import { EmitInterfaceConfig } from '../pages/emitInterface/types';
+import { EmitInterfaceConfig } from '../pages/emitInterface/types';
 
 import {
   getAllLocation,
@@ -43,7 +44,11 @@ const reverseGeocoding = async (
   feature: Features,
   config: EmitInterfaceConfig
 ): Promise<string> => {
+  feature: Features,
+  config: EmitInterfaceConfig
+): Promise<string> => {
   const id = feature?.properties['Plume ID'];
+  if (!allLocation) return '';
   if (!allLocation) return '';
   const locationFromLookup = allLocation[id];
   if (locationFromLookup !== undefined && locationFromLookup !== UNKNOWN) {
@@ -51,6 +56,18 @@ const reverseGeocoding = async (
   } else {
     const lat = feature.properties['Latitude of max concentration'];
     const lon = feature.properties['Longitude of max concentration'];
+    const apikey = config?.geoApifyKey
+      ? config.geoApifyKey
+      : process.env.REACT_APP_GEOAPIFY_APIKEY;
+    if (!apikey) {
+      console.warn('No api key found for location endpoint');
+      return '';
+    }
+    const baseEndpoint = config?.latlonEndpoint
+      ? config.latlonEndpoint
+      : process.env.REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT;
+    const endpoint = `${baseEndpoint}?lat=${lat}&lon=${lon}&&apiKey=${apikey}`;
+    const location = await fetchLocationFromEndpoint(lat, lon, endpoint);
     const apikey = config?.geoApifyKey
       ? config.geoApifyKey
       : process.env.REACT_APP_GEOAPIFY_APIKEY;
@@ -77,11 +94,12 @@ const reverseGeocoding = async (
  * @returns {Promise<{ data: Record<string, Plume> }>} - A plume map keyed by STAC item ID.
  */
 export const transformMetadata = async (
-  metadata: Metadata,
-  stacData: STACItem[]
+  metaData: Metadata,
+  stacData: STACItem[],
+  config: EmitInterfaceConfig
 ) => {
-  const metaFeatures = getResultArray(metadata);
-  const allLocation: Record<string, string> = await getAllLocation();
+  const metaFeatures = getResultArray(metaData);
+  const allLocation: Record<string, string> = await getAllLocation(config);
 
   const polygonLookup = new Map<string, Features>();
   let pointLookup = new Map<string, Features>();
@@ -113,6 +131,8 @@ export const transformMetadata = async (
     const location =
       (await reverseGeocoding(allLocation, pointInfo as Features, config)) ??
       '';
+      (await reverseGeocoding(allLocation, pointInfo as Features, config)) ??
+      '';
     const properties: Properties = {
       longitudeOfMaxConcentration:
         pointInfo?.properties['Longitude of max concentration'],
@@ -133,6 +153,7 @@ export const transformMetadata = async (
       daacSceneNumber: pointInfo?.properties['DAAC Scene Numbers'],
       sceneFID: pointInfo?.properties['Scene FIDs'],
       mapEndTime: pointInfo?.properties?.map_endtime,
+      location: location,
       location: location,
     };
     const lon =
