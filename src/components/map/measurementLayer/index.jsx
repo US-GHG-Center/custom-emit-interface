@@ -63,7 +63,7 @@ export const MeasurementLayer = ({
       setClearMeasurementIcon(false);
     }
     setMeasurePoints(anchor);
-    map.getSource('measurePoints').setData(anchor);
+    map.getSource('measurePoints')?.setData(anchor);
     map.moveLayer('measure-points');
   };
   /**
@@ -147,7 +147,7 @@ export const MeasurementLayer = ({
    * Attach click and double-click handlers when measuring is active.
    */
   useEffect(() => {
-    if (!map) return;
+    if (!map || !map.isStyleLoaded()) return;
     if (measureMode && map) {
       map.on('click', handleClick);
       map.on('dblclick', handleDoubleClick);
