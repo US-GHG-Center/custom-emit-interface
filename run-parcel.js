@@ -5,6 +5,10 @@ require('dotenv').config();
 const mode = process.argv[2] || 'serve'; // 'serve', 'build:lib', or 'build:demo'
 const buildDir = process.argv[3] || 'build';
 
+
+
+// Read the public path from the environment variable set in your .env file.
+// This variable (PARCEL_APP_BASE_PATH) is also used by your corrected_fetch_logic_js.
 const publicUrl = process.env.PUBLIC_URL;
 
 if ((mode === 'build' || mode === 'serve') && !publicUrl) {
