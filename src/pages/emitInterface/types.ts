@@ -8,6 +8,7 @@ export interface EmitInterfaceConfig {
   basemapStyle: string;
   rasterApiUrl: string;
   geoApifyKey: string;
+  publicUrl: string;
   defaultCollectionId: string;
   defaultZoomLocation: [number, number];
   defaultZoomLevel: number;
