@@ -83,7 +83,8 @@ export const EmitInterface = ({
         if (!isMounted) return;
         const { data, latestPlume } = await transformMetadata(
           metadata,
-          stacData
+          stacData,
+          config
         );
         setPlumes(data);
         setFilterDateRange({

@@ -1,4 +1,3 @@
-const LOCATION_LOOKUP_PATH = `${process.env.PUBLIC_URL}/locationLookup.json`;
 export const UNKNOWN = 'unknown';
 export const fetchData = async (endpoint) => {
   try {
@@ -28,6 +27,10 @@ export const getCoverageData = async (url) => {
 };
 
 export const getLocationForFeature = async (feature, config) => {
+  const publicUrl = config?.publicUrl
+    ? config.publicUrl
+    : process.env.PUBLIC_URL;
+  const LOCATION_LOOKUP_PATH = `${publicUrl}/locationLookup.json`;
   const response = await fetch(LOCATION_LOOKUP_PATH);
   const lookup_location = await response.json();
   const lat = feature.properties['Latitude of max concentration'];
@@ -58,8 +61,14 @@ export const getLocationForFeature = async (feature, config) => {
   return result;
 };
 
-export const getAllLocation = async () => {
+export const getAllLocation = async (config) => {
   try {
+    console.log({ config });
+    const publicUrl = config?.publicUrl
+      ? config.publicUrl
+      : process.env.PUBLIC_URL;
+    const LOCATION_LOOKUP_PATH = `${publicUrl}/locationLookup.json`;
+    console.log({ LOCATION_LOOKUP_PATH });
     const response = await fetch(LOCATION_LOOKUP_PATH);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const lookup_location = await response.json();
