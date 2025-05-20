@@ -1,4 +1,3 @@
-const LOCATION_LOOKUP_PATH = `${process.env.PUBLIC_URL}/lookups/plumeIdLocation.json`;
 export const UNKNOWN = 'unknown';
 import lookupLocation from '../../static/locationLookup.json';
 export const fetchData = async (endpoint) => {
@@ -9,7 +8,7 @@ export const fetchData = async (endpoint) => {
     }
     return await response.json();
   } catch (err) {
-    console.error('Error while getting data');
+    console.warn('Error while getting data', err);
     return null;
   }
 };
@@ -64,10 +63,9 @@ export function getAllLocation() {
   return lookupLocation;
 }
 
-export const fetchLocationFromEndpoint = async (lat, lon) => {
+export const fetchLocationFromEndpoint = async (lat, lon, endpoint) => {
   let location = '';
   try {
-    const endpoint = `${process.env.REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT}?lat=${lat}&lon=${lon}&&apiKey=${process.env.REACT_APP_GEOAPIFY_APIKEY}`;
     const location_data = await fetchData(endpoint);
     let location_properties = location_data.features[0].properties;
     let sub_location =

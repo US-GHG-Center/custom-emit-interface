@@ -16,12 +16,12 @@ import {
   CoverageLayers,
   MapViewPortComponent,
   RASTER_ZOOM_LEVEL,
-} from '@components';
+  ToggleSwitch
+} from '../../components';
 
 import styled from 'styled-components';
 
 import './index.css';
-import ToggleSwitch from '../../components/ui/toggle';
 import { filterByDateRange, getPopupContent } from './helper';
 import Plumes from './helper/PlumeLayer';
 import moment from 'moment';
@@ -69,6 +69,7 @@ export function Dashboard({
   setZoomLevel,
   collectionId,
   loadingData,
+  config,
 }) {
   // states for data
   const [vizItems, setVizItems] = useState([]); // store all available visualization items
@@ -139,7 +140,7 @@ export function Dashboard({
       newItems[item?.id] = item;
     });
     return newItems;
-  }
+  };
 
   const handleResetHome = () => {
     setFromSearch(false);
@@ -201,11 +202,10 @@ export function Dashboard({
       setShowCoverages(val);
     }
   };
-
   return (
-    <Box className='fullSize'>
+    <div className='fullSize'>
       <div id='dashboard-map-container'>
-        <MainMap>
+        <MainMap config={config}>
           <Paper className='title-container'>
             <Title title={TITLE} description={DESCRIPTION} />
             <div className='title-content'>
@@ -275,6 +275,7 @@ export function Dashboard({
             assets={assets}
             onHoverOverLayer={handleHoveredVizLayer}
             highlightedLayer={hoveredVizLayerId}
+            config={config}
           />
           )
         </MainMap>
@@ -287,6 +288,7 @@ export function Dashboard({
           collectionId={collectionId}
           onSelectVizLayer={handleClickedVizLayer}
           onHoverOnVizLayer={handleHoveredVizLayer}
+          config={config}
         />
         )
       </div>
@@ -300,6 +302,6 @@ export function Dashboard({
         />
       )}
       {loadingData && <LoadingSpinner />}
-    </Box>
+    </div>
   );
 }

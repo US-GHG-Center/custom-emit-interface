@@ -90,12 +90,13 @@ export const VisualizationItemCard = forwardRef(
       onSelectVizLayer,
       onHoverOnVizLayer,
       hoveredVizItemId,
+      rasterApiUrl,
     },
     ref
   ) => {
     const vizItemSourceId = vizItem?.id;
     const orbit = vizItem?.plumeProperties?.orbit;
-    const imageUrl = `${process.env.REACT_APP_RASTER_API_URL}/collections/emit-ch4plume-v1/items/${vizItemSourceId}/preview.png?bidx=1&assets=ch4-plume-emissions&rescale=1%2C1500&resampling=bilinear&colormap_name=plasma`;
+    const imageUrl = `${rasterApiUrl}/collections/emit-ch4plume-v1/items/${vizItemSourceId}/preview.png?bidx=1&assets=ch4-plume-emissions&rescale=1%2C1500&resampling=bilinear&colormap_name=plasma`;
     const tiffUrl = vizItem?.plumeProperties?.assetLink;
     const location = vizItem?.plumeProperties?.location;
     const maxPlumeConcentration = vizItem?.plumeProperties?.maxConcentration;

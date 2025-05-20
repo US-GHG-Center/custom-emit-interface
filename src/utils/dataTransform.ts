@@ -22,13 +22,12 @@ import {
 } from '../dataModel';
 import { EmitInterfaceConfig } from '../pages/emitInterface/types';
 
-
 import {
   getAllLocation,
   getResultArray,
   UNKNOWN,
   fetchLocationFromEndpoint,
-} from '../../../services/api';
+} from '../services/api';
 
 /**
  * Performs reverse geocoding for a given feature based on its plume ID.
@@ -45,7 +44,6 @@ const reverseGeocoding = async (
   config: EmitInterfaceConfig
 ): Promise<string> => {
   const id = feature?.properties['Plume ID'];
-  
   if (!allLocation) return '';
   const locationFromLookup = allLocation[id];
   if (locationFromLookup !== undefined && locationFromLookup !== UNKNOWN) {
@@ -164,7 +162,6 @@ export const transformMetadata = async (
       stac_extensions: item.stac_extensions,
     };
   });
-
   return {
     data: plumes,
     latestPlume: latestPlume,
