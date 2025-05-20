@@ -1,8 +1,40 @@
 {
-  "name": "interface-template",
-  "version": "1.0.0",
+  "name": "custom-emit-interface",
   "private": true,
-  "homepage": ".",
+  "description": "Standalone EMIT Methane Plume Viewer app",
+  "workspaces": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "dotenv -- node ./run-parcel.js build build ",
+    "build:lib": "yarn workspace test01-emit build",
+    "serve": "dotenv -- node ./run-parcel.js serve",
+    "prepare:static": "cp -r static/* public/",
+    "clean": "rm -rf node_modules dist build yarn.lock .parcel-cache && yarn cache clean",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "fix-conflicts": "prettier --write . && eslint . --fix",
+    "prepublishOnly": "npm run build:lib",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "peerDependencies": {
+    "@emotion/react": ">=11.13.3",
+    "@emotion/styled": ">=11.13.0",
+    "@mui/icons-material": ">=6.1.6",
+    "@mui/material": ">=6.1.6",
+    "@mui/system": ">=5.0.0",
+    "mapbox-gl": ">=3.7.0",
+    "react": ">=18.3.1",
+    "react-dom": ">=18.3.1",
+    "react-is": ">=18.3.1",
+    "react-loader-spinner": "^6.1.6",
+    "react-resizable-panels": "^2.1.1",
+    "react-router-dom": "^6.27.0",
+    "styled-components": ">=6.1.13"
+  },
   "dependencies": {
     "@date-io/moment": "^3.0.0",
     "@emotion/react": "^11.13.3",
@@ -40,8 +72,11 @@
     "@fortawesome/free-regular-svg-icons": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "luxon": "^3.5.0",
-    "react-resizable-panels": "^2.1.1"
+    "@swc/helpers": "^0.5.3",
+    "@turf/bbox-polygon": "^7.2.0",
+    "@turf/boolean-intersects": "^7.2.0",
+    "@turf/length": "^7.2.0",
+    "luxon": "^3.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
@@ -85,8 +120,7 @@
     "react-resizable-panels": "^2.1.1",
     "react-router-dom": "^6.27.0",
     "styled-components": "^6.1.13",
-    "typescript": "^4.4.2",
-
+    "typescript": "^4.4.2"
   },
   "eslintConfig": {
     "extends": [
@@ -107,6 +141,31 @@
     ]
   },
   "resolutions": {
-    "styled-components": "^5"
+    "styled-components": "^6.1.13"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/US-GHG-Center/custom-emit-interface.git"
+  },
+  "keywords": [
+    "react",
+    "interface",
+    "template",
+    "mui",
+    "mapbox",
+    "chart"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/US-GHG-Center/custom-emit-interface/issues"
+  },
+  "homepage": "https://github.com/US-GHG-Center/custom-emit-interface#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "alias": {
+    "$components": "./src/components",
+    "$context": "./src/context/"
   }
 }

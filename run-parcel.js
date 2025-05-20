@@ -1,34 +1,29 @@
 // run-parcel.js
 const { execSync } = require('child_process');
-require('dotenv').config();
 
-const mode = process.argv[2] || 'serve'; // 'serve', 'build:lib', or 'build:demo'
-const buildDir = process.argv[3] || 'build';
-
-
-
-// Read the public path from the environment variable set in your .env file.
-// This variable (PARCEL_APP_BASE_PATH) is also used by your corrected_fetch_logic_js.
+const buildDir = process.argv[3];
 const publicUrl = process.env.PUBLIC_URL;
 
-if ((mode === 'build' || mode === 'serve') && !publicUrl) {
+if (!publicUrl) {
   console.error(
-    '[run-parcel.js] ❌ PUBLIC_URL must be defined in your .env file or shell environment.'
+    'Error: PARCEL_APP_BASE_PATH is not defined in your .env file or environment.'
+  );
+  console.error(
+    'Please define it (e.g., PARCEL_APP_BASE_PATH="/my/custom/path").'
   );
   process.exit(1);
 }
 
-let parcelCommand = '';
+let parcelCommand;
 
+const mode = process.argv[2];
+console.log({ mode });
 switch (mode) {
-  case 'build:lib':
-    parcelCommand = `parcel build src/index.ts --dist-dir dist --no-cache`;
-    break;
   case 'build':
-    parcelCommand = `parcel build public/index.html --public-url "${publicUrl}" --dist-dir ${buildDir} --no-cache`;
+    parcelCommand = `parcel build public/index.html --public-url "${publicUrl}" --dist-dir ${buildDir}`;
     break;
   case 'serve':
-    parcelCommand = `parcel public/index.html --public-url "${publicUrl}" --no-cache`;
+    parcelCommand = `parcel public/index.html --public-url "${publicUrl}"`;
     break;
   default:
     console.error(`[run-parcel.js] ❌ Unknown mode: ${mode}`);
@@ -36,4 +31,10 @@ switch (mode) {
 }
 
 console.log(`[run-parcel.js] ▶ Running: ${parcelCommand}`);
-execSync(parcelCommand, { stdio: 'inherit' });
+try {
+  execSync(parcelCommand, { stdio: 'inherit' });
+} catch (error) {
+  console.error(`[run-parcel.js] ❌ Parcel command failed for mode: ${mode}`);
+  // error object itself is already printed by execSync on failure when stdio is 'inherit'
+  process.exit(1); // Ensure script exits with error code
+}
