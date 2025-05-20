@@ -1,26 +1,54 @@
-import { Fragment } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import CssBaseline from '@mui/material/CssBaseline';
-import { DashboardContainer } from './pages/dashboardContainer';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import React from "react";
+import { EmitInterface } from "test01-emit";
+import { BrowserRouter } from "react-router-dom";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 
-import './App.css';
+const emitConfig = {
+  // API Endpoints
+  stacApiUrl:
+    "https://earth.gov/ghgcenter/api/stac/collections/emit-ch4plume-v1/items",
+  metadataEndpoint:
+    "https://earth.jpl.nasa.gov/emit-mmgis-lb/Missions/EMIT/Layers/coverage/combined_plume_metadata.json",
+  coverageUrl:
+    "https://earth.jpl.nasa.gov/emit-mmgis/Missions/EMIT/Layers/coverage/coverage_pub.json",
+  baseStacApiUrl: "https://earth.gov/ghgcenter/api/stac/",
+  mapboxToken:
+    "pk.eyJ1IjoiY292aWQtbmFzYSIsImEiOiJjbGNxaWdqdXEwNjJnM3VuNDFjM243emlsIn0.NLbvgae00NUD5K64CD6ZyA",
+  mapBoxStyle: "mapbox://styles/covid-nasa",
+  basemapStyle: "cldu1cb8f00ds01p6gi583w1m",
+  geoApifyKey: "58347c078a5645d6b6367ae88984be7c",
+  latlonEndpoint: "https://api.geoapify.com/v1/geocode/reverse",
+  rasterApiUrl: "https://earth.gov/ghgcenter/api/raster",
+  publicUrl: "",
 
-const BASE_PATH = process.env.PUBLIC_URL;
+  // Map Configuration
+  defaultZoomLocation: [-98.771556, 32.967243],
+  defaultZoomLevel: 4,
+  defaultCollectionId: "emit-ch4plume-v1",
+
+  // Date Range
+  defaultStartDate: "2022-08-22",
+};
+
+// You can then use this object in your application, for example:
+// console.log(configInstance.stacApiUrl);
+// console.log(configInstance.defaultZoomLevel);
 
 function App() {
   return (
-    <Fragment>
-      <CssBaseline />
+    <BrowserRouter>
       <LocalizationProvider dateAdapter={AdapterMoment}>
-        <BrowserRouter basename={BASE_PATH}>
-          <Routes>
-            <Route path='/' element={<DashboardContainer />}></Route>
-          </Routes>
-        </BrowserRouter>
+        <div className="fullSize">
+          <EmitInterface
+            collectionId="emit-ch4plume-v1"
+            zoomLocation={[-98.771556, 32.967243]}
+            zoomLevel={4}
+            config={emitConfig}
+          />
+        </div>
       </LocalizationProvider>
-    </Fragment>
+    </BrowserRouter>
   );
 }
 

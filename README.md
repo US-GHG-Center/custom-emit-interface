@@ -1,4 +1,4 @@
-# interfaces-template
+# Example usage of library
 
 Template for the custom interfaces
 
