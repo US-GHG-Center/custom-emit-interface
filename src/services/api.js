@@ -1,5 +1,6 @@
 const LOCATION_LOOKUP_PATH = `${process.env.PUBLIC_URL}/lookups/plumeIdLocation.json`;
 export const UNKNOWN = 'unknown';
+import lookupLocation from '../../static/locationLookup.json';
 export const fetchData = async (endpoint) => {
   try {
     const response = await fetch(endpoint);
@@ -27,31 +28,41 @@ export const getCoverageData = async (url) => {
   return coverageData;
 };
 
-export const getLocationForFeature = async (feature) => {
-  const response = await fetch(LOCATION_LOOKUP_PATH);
-  const lookup_location = await response.json();
-  const lat = feature.properties['Latitude of max concentration'];
-  const lon = feature.properties['Longitude of max concentration'];
-  const id = feature.properties['Plume ID'];
-  let result = '';
-  const locationFromLookup = lookup_location[id];
-  if (
-    locationFromLookup !== undefined ||
-    locationFromLookup !== '' ||
-    locationFromLookup !== UNKNOWN
-  ) {
-    result = lookup_location[id];
-  } else {
-    result = await fetchLocationFromEndpoint(lat, lon);
-  }
-  return result;
-};
+export async function getLocationForFeature(feature) {
+  const { properties } = feature;
+  const id  = properties['Plume ID'];
+  const lat = properties['Latitude of max concentration'];
+  const lon = properties['Longitude of max concentration'];
 
-export const getAllLocation = async () => {
-  const response = await fetch(LOCATION_LOOKUP_PATH);
-  const lookup_location = await response.json();
-  return lookup_location;
-};
+  const locationFromLookup = lookupLocation[id];
+  if (typeof locationFromLookup === 'string' && locationFromLookup !== UNKNOWN) {
+    return locationFromLookup;
+  }
+
+  const apiKey = config.geoApifyKey ?? process.env.REACT_APP_GEOAPIFY_APIKEY;
+  if (!apiKey) {
+    console.warn('No Geoapify API key for location lookup. Returning empty string.');
+    return '';
+  }
+
+  const baseEndpoint =
+    config.latlonEndpoint ??
+    process.env.REACT_APP_LAT_LON_TO_COUNTRY_ENDPOINT;
+  const endpoint = `${baseEndpoint}?lat=${lat}&lon=${lon}&apiKey=${apiKey}`;
+
+  try {
+    const result = await fetchLocationFromEndpoint(lat, lon, endpoint);
+    return result;
+  } catch (err) {
+    console.error('❌ Error fetching location from endpoint:', err);
+    return '';
+  }
+}
+
+
+export function getAllLocation() {
+  return lookupLocation;
+}
 
 export const fetchLocationFromEndpoint = async (lat, lon) => {
   let location = '';

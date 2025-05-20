@@ -84,7 +84,7 @@ export const transformMetadata = async (
   config: EmitInterfaceConfig
 ) => {
   const metaFeatures = getResultArray(metaData);
-  const allLocation: Record<string, string> = await getAllLocation(config);
+  const allLocation: Record<string, string> =  getAllLocation();
 
   const polygonLookup = new Map<string, Features>();
   let pointLookup = new Map<string, Features>();

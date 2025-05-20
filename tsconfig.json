@@ -16,5 +16,9 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src", "static"],
+  "paths": {
+    "$components/*": "src/components/*",
+    "$context/*": "src/context/*"
+  }
 }
